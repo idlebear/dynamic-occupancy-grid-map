@@ -461,8 +461,8 @@ _Pvt_Extensions
 
 # CLion
 .idea/
-dogm/cmake-build-debug/
-dogm/cmake-build-release/
+cmake-build-debug/
+cmake-build-release/
 
 # VS Code
 .vscode/
