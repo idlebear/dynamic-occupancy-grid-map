@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.9)
 project(DOGM LANGUAGES CXX CUDA)
 
 set(CMAKE_CXX_STANDARD 14)
+set(OpenGL_GL_PREFERENCE "GLVND")
 
 option(BUILD_TESTS "Build unit tests" ON)
 
