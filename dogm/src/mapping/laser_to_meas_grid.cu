@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: MIT
 // See accompanying LICENSE file for detailed information
 
-#include "mapping/laser_to_meas_grid.h"
-#include "mapping/opengl/renderer.h"
+#include "dogm/mapping/laser_to_meas_grid.h"
+#include "dogm/mapping/opengl/renderer.h"
 
-#include "mapping/kernel/measurement_grid.h"
+#include "dogm/mapping/kernel/measurement_grid.h"
 
-LaserMeasurementGrid::LaserMeasurementGrid(const Params& params, float grid_length, float resolution)
+dogm::LaserMeasurementGrid::LaserMeasurementGrid(const Params& params, float grid_length, float resolution)
     : grid_size(static_cast<int>(grid_length / resolution)), params(params)
 {
     int grid_cell_count = grid_size * grid_size;
@@ -17,12 +17,12 @@ LaserMeasurementGrid::LaserMeasurementGrid(const Params& params, float grid_leng
     renderer = std::make_unique<Renderer>(grid_size, params.fov, grid_length, params.max_range);
 }
 
-LaserMeasurementGrid::~LaserMeasurementGrid()
+dogm::LaserMeasurementGrid::~LaserMeasurementGrid()
 {
     CHECK_ERROR(cudaFree(meas_grid));
 }
 
-dogm::MeasurementCell* LaserMeasurementGrid::generateGrid(const std::vector<float>& measurements)
+dogm::MeasurementCell* dogm::LaserMeasurementGrid::generateGrid(const std::vector<float>& measurements)
 {
     const int num_measurements = measurements.size();
 

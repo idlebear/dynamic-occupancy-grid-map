@@ -1,3 +1,7 @@
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")
+set(OpenGL_GL_PREFERENCE "GLVND")
+
+
 find_package(OpenGL REQUIRED)
 
 find_package(GLM)
@@ -21,26 +25,26 @@ endif()
 
 SET(HEADER_FILES
     include/simulator.h
-    include/mapping/laser_to_meas_grid.h
-    include/mapping/opengl/texture.h
-    include/mapping/opengl/framebuffer.h
-    include/mapping/opengl/polygon.h
-    include/mapping/opengl/renderer.h
-    include/mapping/opengl/shader.h
-    include/mapping/kernel/measurement_grid.h
+#    include/mapping/laser_to_meas_grid.h
+#    include/mapping/opengl/texture.h
+#    include/mapping/opengl/framebuffer.h
+#    include/mapping/opengl/polygon.h
+#    include/mapping/opengl/renderer.h
+#    include/mapping/opengl/shader.h
+#    include/mapping/kernel/measurement_grid.h
 )
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${HEADER_FILES})
 
 SET(SRC_FILES
     simulator.cpp
-    mapping/laser_to_meas_grid.cu
-    mapping/opengl/texture.cpp
-    mapping/opengl/framebuffer.cpp
-    mapping/opengl/polygon.cpp
-    mapping/opengl/renderer.cpp
-    mapping/opengl/shader.cpp
-    mapping/kernel/measurement_grid.cu
+ #   mapping/laser_to_meas_grid.cu
+ #   mapping/opengl/texture.cpp
+ #   mapping/opengl/framebuffer.cpp
+ #   mapping/opengl/polygon.cpp
+ #   mapping/opengl/renderer.cpp
+ #   mapping/opengl/shader.cpp
+ #   mapping/kernel/measurement_grid.cu
 )
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SRC_FILES})

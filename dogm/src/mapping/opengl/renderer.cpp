@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 // See accompanying LICENSE file for detailed information
 
-#include "mapping/opengl/renderer.h"
+#include "dogm/mapping/opengl/renderer.h"
 
 #include <cmath>
 

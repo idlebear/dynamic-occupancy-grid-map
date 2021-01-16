@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 // See accompanying LICENSE file for detailed information
 
-#include "mapping/opengl/texture.h"
+#include "dogm/mapping/opengl/texture.h"
 #include "dogm/cuda_utils.h"
 
 #include <cstdio>

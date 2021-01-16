@@ -59,6 +59,12 @@ set(HEADER_FILES
 	include/dogm/cuda_utils.h
 	include/dogm/dogm.h
 	include/dogm/dogm_types.h
+	include/dogm/mapping/laser_to_meas_grid.h
+	include/dogm/mapping/kernel/measurement_grid.h
+	include/dogm/mapping/opengl/framebuffer.h
+	include/dogm/mapping/opengl/polygon.h
+	include/dogm/mapping/opengl/shader.h
+	include/dogm/mapping/opengl/texture.h
 )
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${HEADER_FILES})
@@ -74,6 +80,13 @@ set(SRC_FILES
 	src/kernel/update_persistent_particles.cu
 	src/kernel/ego_motion_compensation.cu
 	src/dogm.cu
+	src/mapping/laser_to_meas_grid.cu
+	src/mapping/kernel/measurement_grid.cu
+	src/mapping/opengl/framebuffer.cpp
+	src/mapping/opengl/polygon.cpp
+	src/mapping/opengl/renderer.cpp
+	src/mapping/opengl/shader.cpp
+	src/mapping/opengl/texture.cpp
 )
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SRC_FILES})

@@ -3,7 +3,7 @@
 // See accompanying LICENSE file for detailed information
 
 #include "dogm/dogm_types.h"
-#include "mapping/kernel/measurement_grid.h"
+#include "dogm/mapping/kernel/measurement_grid.h"
 
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>

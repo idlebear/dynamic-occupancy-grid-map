@@ -5,8 +5,8 @@
 #include "clock.h"
 #include "dogm/dogm.h"
 #include "dogm/dogm_types.h"
+#include "dogm/mapping/laser_to_meas_grid.h"
 #include "image_creation.h"
-#include "mapping/laser_to_meas_grid.h"
 #include "metrics.h"
 #include "precision_evaluator.h"
 #include "simulator.h"
@@ -32,11 +32,11 @@ int main(int argc, const char** argv)
     grid_params.stddev_velocity = 30.0f;
     grid_params.init_max_velocity = 30.0f;
 
-    LaserMeasurementGrid::Params laser_params;
+    dogm::LaserMeasurementGrid::Params laser_params;
     laser_params.fov = 120.0f;
     laser_params.max_range = 50.0f;
     laser_params.resolution = grid_params.resolution;  // TODO make independent of grid_params.resolution
-    LaserMeasurementGrid grid_generator(laser_params, grid_params.size, grid_params.resolution);
+    dogm::LaserMeasurementGrid grid_generator(laser_params, grid_params.size, grid_params.resolution);
 
     const int sensor_horizontal_scan_points = 100;
 
@@ -50,7 +50,7 @@ int main(int argc, const char** argv)
     const float minimum_velocity_threshold = 4.0f;
 
     // Just to init cuda
-    cudaDeviceSynchronize();
+    // cudaDeviceSynchronize();
 
     Timer initialization_timer{"DOGM initialization", std::make_unique<Clock>()};
     dogm::DOGM grid_map(grid_params);
