@@ -3,6 +3,7 @@ project(DOGM LANGUAGES CXX CUDA)
 
 set(CMAKE_CXX_STANDARD 14)
 set(OpenGL_GL_PREFERENCE "GLVND")
+set( CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "--shared --compiler-options '-fPIC'" )
 
 option(BUILD_TESTS "Build unit tests" ON)
 
@@ -77,7 +78,7 @@ set(SRC_FILES
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SRC_FILES})
 
-add_library(dogm STATIC
+add_library(dogm SHARED
     ${HEADER_FILES}
 	${SRC_FILES}
 )
