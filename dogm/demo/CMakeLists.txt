@@ -1,3 +1,5 @@
+
+
 find_package(OpenCV)
 if (NOT OpenCV_FOUND)
 	set(OpenCV_INCLUDE_DIRS "" CACHE PATH "" )
@@ -5,6 +7,7 @@ if (NOT OpenCV_FOUND)
 endif()
 
 add_definitions(-D_USE_MATH_DEFINES)  # Required to make M_PI from cmath available in MSVC
+set( CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "--shared --compiler-options '-fPIC'" )
 
 add_executable(demo
 	main.cpp
