@@ -80,7 +80,7 @@ int main(int argc, const char** argv)
 
     for (int step = 0; step < num_simulation_steps; ++step)
     {
-        grid_map.updatePose(sim_data[step].ego_pose.x, sim_data[step].ego_pose.y);
+        grid_map.updatePose(sim_data[step].ego_pose.x, sim_data[step].ego_pose.y, 0);
 
         dogm::MeasurementCell* meas_grid = grid_generator.generateGrid(sim_data[step].measurements);
         grid_map.addMeasurementGrid(meas_grid, true);
