@@ -157,23 +157,27 @@ ParticlesSoA DOGM::getParticles() const
     return particles;
 }
 
-void DOGM::updatePose(float new_x, float new_y)
+void DOGM::updatePose(float new_x, float new_y, float new_theta)
 {
     if (!first_pose_received)
     {
         position_x = new_x;
         position_y = new_y;
+        position_theta = new_theta;
         first_pose_received = true;
     }
     else
     {
         const float x_diff = new_x - position_x;
         const float y_diff = new_y - position_y;
+        const float theta_diff = new_theta - position_theta;
 
-        if (fabsf(x_diff) > params.resolution || fabsf(y_diff) > params.resolution)
+        if (fabsf(x_diff) > params.resolution || fabsf(y_diff) > params.resolution || fabsf(theta_diff) > params.resolution )
         {
-            const int x_move = -static_cast<int>(x_diff / params.resolution);
-            const int y_move = -static_cast<int>(y_diff / params.resolution);
+            const float x_move = x_diff / params.resolution;
+            const float y_move = y_diff / params.resolution;
+            const float cos_theta = cos(theta_diff);
+            const float sin_theta = sin(theta_diff);
 
             GridCell* old_grid_cell_array;
             CHECK_ERROR(cudaMalloc(&old_grid_cell_array, grid_cell_count * sizeof(GridCell)));
@@ -185,16 +189,19 @@ void DOGM::updatePose(float new_x, float new_y)
             dim3 dim_block(32, 32);
             dim3 grid_dim(divUp(grid_size, dim_block.x), divUp(grid_size, dim_block.y));
 
-            moveParticlesKernel<<<particles_grid, block_dim>>>(particle_array, x_move, y_move, particle_count);
+            moveParticlesKernel<<<particles_grid, block_dim>>>(particle_array, x_move, y_move,
+                                                               cos_theta, sin_theta, particle_count);
             CHECK_ERROR(cudaGetLastError());
 
-            moveMapKernel<<<grid_dim, dim_block>>>(grid_cell_array, old_grid_cell_array, x_move, y_move, grid_size);
+            moveMapKernel<<<grid_dim, dim_block>>>(grid_cell_array, old_grid_cell_array, x_move, y_move,
+                                                   cos_theta, sin_theta, grid_size);
             CHECK_ERROR(cudaGetLastError());
 
             CHECK_ERROR(cudaFree(old_grid_cell_array));
 
             position_x = new_x;
             position_y = new_y;
+            position_theta = new_theta;
         }
     }
 }

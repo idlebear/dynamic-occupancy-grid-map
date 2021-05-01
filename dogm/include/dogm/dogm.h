@@ -38,7 +38,7 @@ public:
     DOGM(const Params& params);
     ~DOGM();
 
-    void updatePose(float new_x, float new_y);
+    void updatePose(float new_x, float new_y, float new_theta );
     void addMeasurementGrid(MeasurementCell* measurement_grid, bool device);
     void updateGrid(float dt);
 
@@ -52,6 +52,7 @@ public:
 
     float getPositionX() const { return position_x; }
     float getPositionY() const { return position_y; }
+    float getPositionTheta() const { return position_theta; }
 
     int getIteration() const { return iteration; }
 
@@ -111,6 +112,7 @@ private:
     bool first_measurement_received;
     float position_x;
     float position_y;
+    float position_theta;
 };
 
 } /* namespace dogm */
