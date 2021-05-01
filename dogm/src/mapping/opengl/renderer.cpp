@@ -13,8 +13,8 @@ void generateCircleSegmentVertices(std::vector<Vertex>& vertices, float fov, flo
     vertices.emplace_back(Vertex(glm::vec2(cx, cy), glm::vec2(0.0f, 0.0f)));
 
     float halfFov = fov / 2;
-    float startAngle = 90 - halfFov;
-    float endAngle = 90 + halfFov;
+    float startAngle = - halfFov;
+    float endAngle   = + halfFov;
 
     for (int angle = startAngle; angle <= endAngle; angle++)
     {
