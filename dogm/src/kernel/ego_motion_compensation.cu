@@ -18,14 +18,11 @@ __global__ void moveParticlesKernel(ParticlesSoA particle_array, float x_move, f
 {
     for (int i = blockIdx.x * blockDim.x + threadIdx.x; i < particle_count; i += blockDim.x * gridDim.x)
     {
-        // TODO: which way should the state move here?  For some reason it was opposite in direction to the
-        //       movement of the map kernel below.
-        particle_array.state[i][0] = int(  cos_theta * particle_array.state[i][0]
-                                         + sin_theta * particle_array.state[i][1]
-                                         - x_move);
-        particle_array.state[i][1] = int( -sin_theta * particle_array.state[i][0]
-                                         + cos_theta * particle_array.state[i][1]
-                                         - y_move);
+        auto x = particle_array.state[i][0];
+        auto y = particle_array.state[i][1];
+
+        particle_array.state[i][0] = cos_theta * x + sin_theta * y - float(x_move);
+        particle_array.state[i][1] = -sin_theta * x + cos_theta * y - float(y_move);
     }
 }
 
@@ -38,14 +35,14 @@ __global__ void moveMapKernel(GridCell* __restrict__ grid_cell_array, const Grid
     if (x < grid_size && y < grid_size)
     {
         int index = x + grid_size * y;
-        // TODO: same as above -- x and y translation should be negative?  Currently opposite the particles fn above
-        int new_x = int(cos_theta * x + sin_theta * y + x_move);
-        int new_y = int(- sin_theta * x + cos_theta * y + y_move);
+
+        int new_x = int(cos_theta * float(x) + sin_theta * float(y) - x_move);
+        int new_y = int(-sin_theta * float(x) + cos_theta * float(y) - y_move);
         int new_index = new_x + grid_size * new_y;
 
-        if (new_x > 0 && new_x < grid_size && new_y > 0 && new_y < grid_size)
+        if (new_x >= 0 && new_x < grid_size && new_y >= 0 && new_y < grid_size)
         {
-            grid_cell_array[index] = old_grid_cell_array[new_index];
+            grid_cell_array[new_index] = old_grid_cell_array[index];
         }
     }
 }
