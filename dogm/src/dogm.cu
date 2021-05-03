@@ -179,12 +179,9 @@ void DOGM::updatePose(float new_x, float new_y, float new_theta)
             const float cos_theta = cos(theta_diff);
             const float sin_theta = sin(theta_diff);
 
-            GridCell* old_grid_cell_array;
-            CHECK_ERROR(cudaMalloc(&old_grid_cell_array, grid_cell_count * sizeof(GridCell)));
-
-            CHECK_ERROR(cudaMemcpy(old_grid_cell_array, grid_cell_array, grid_cell_count * sizeof(GridCell),
-                                   cudaMemcpyDeviceToDevice));
-            CHECK_ERROR(cudaMemset(grid_cell_array, 0, grid_cell_count * sizeof(GridCell)));
+            GridCell* new_grid_cell_array;
+            CHECK_ERROR(cudaMalloc(&new_grid_cell_array, grid_cell_count * sizeof(GridCell)));
+            CHECK_ERROR(cudaMemset(new_grid_cell_array, 0, grid_cell_count * sizeof(GridCell)));
 
             dim3 dim_block(32, 32);
             dim3 grid_dim(divUp(grid_size, dim_block.x), divUp(grid_size, dim_block.y));
@@ -193,11 +190,12 @@ void DOGM::updatePose(float new_x, float new_y, float new_theta)
                                                                cos_theta, sin_theta, particle_count);
             CHECK_ERROR(cudaGetLastError());
 
-            moveMapKernel<<<grid_dim, dim_block>>>(grid_cell_array, old_grid_cell_array, x_move, y_move,
+            moveMapKernel<<<grid_dim, dim_block>>>(new_grid_cell_array, grid_cell_array, x_move, y_move,
                                                    cos_theta, sin_theta, grid_size);
             CHECK_ERROR(cudaGetLastError());
 
-            CHECK_ERROR(cudaFree(old_grid_cell_array));
+            CHECK_ERROR(cudaFree(grid_cell_array));
+            grid_cell_array = new_grid_cell_array;
 
             position_x = new_x;
             position_y = new_y;
