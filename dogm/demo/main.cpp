@@ -80,13 +80,14 @@ int main(int argc, const char** argv)
 
     for (int step = 0; step < num_simulation_steps; ++step)
     {
-        grid_map.updatePose(sim_data[step].ego_pose.x, sim_data[step].ego_pose.y);
-
         dogm::MeasurementCell* meas_grid = grid_generator.generateGrid(sim_data[step].measurements);
-        grid_map.addMeasurementGrid(meas_grid, true);
 
-        const auto update_grid_caller = [&grid_map](const float dt) { grid_map.updateGrid(dt); };
-        cycle_timer.timeFunctionCall(true, update_grid_caller, simulation_step_period);
+        const auto update_grid_caller = [&grid_map](auto&&... args) {
+            grid_map.updateGrid(std::forward<decltype(args)>(args)...);
+        };
+
+        cycle_timer.timeFunctionCall(true, update_grid_caller, meas_grid, sim_data[step].ego_pose.x,
+                                     sim_data[step].ego_pose.y, 0.0f, simulation_step_period, true);
 
         const auto cells_with_velocity =
             computeCellsWithVelocity(grid_map, minimum_occupancy_threshold, minimum_velocity_threshold);
