@@ -34,14 +34,13 @@ __global__ void moveMapKernel(GridCell* __restrict__ grid_cell_array, const Grid
 
     if (x < grid_size && y < grid_size)
     {
-        int index = x + grid_size * y;
-
         int new_x = int(cos_theta * float(x) + sin_theta * float(y) - x_move);
         int new_y = int(-sin_theta * float(x) + cos_theta * float(y) - y_move);
-        int new_index = new_x + grid_size * new_y;
 
         if (new_x >= 0 && new_x < grid_size && new_y >= 0 && new_y < grid_size)
         {
+            int index = x + grid_size * y;
+            int new_index = new_x + grid_size * new_y;
             grid_cell_array[new_index] = old_grid_cell_array[index];
         }
     }

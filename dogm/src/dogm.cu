@@ -112,8 +112,11 @@ void DOGM::initialize()
     CHECK_ERROR(cudaStreamDestroy(grid_stream));
 }
 
-void DOGM::updateGrid(float dt)
+void DOGM::updateGrid(MeasurementCell* measurement_grid, float new_x, float new_y, float new_yaw, float dt, bool device)
 {
+    updateMeasurementGrid(measurement_grid, device);
+    updatePose(new_x, new_y, new_yaw);
+
     particlePrediction(dt);
     particleAssignment();
     gridCellOccupancyUpdate();
@@ -157,27 +160,27 @@ ParticlesSoA DOGM::getParticles() const
     return particles;
 }
 
-void DOGM::updatePose(float new_x, float new_y, float new_theta)
+void DOGM::updatePose(float new_x, float new_y, float new_yaw)
 {
     if (!first_pose_received)
     {
         position_x = new_x;
         position_y = new_y;
-        position_theta = new_theta;
+        yaw = new_yaw;
         first_pose_received = true;
     }
     else
     {
         const float x_diff = new_x - position_x;
         const float y_diff = new_y - position_y;
-        const float theta_diff = new_theta - position_theta;
+        const float yaw_diff = new_yaw - yaw;
 
-        if (fabsf(x_diff) > params.resolution || fabsf(y_diff) > params.resolution || fabsf(theta_diff) > params.resolution )
+        if (fabsf(x_diff) > params.resolution || fabsf(y_diff) > params.resolution || fabsf(yaw_diff) > params.resolution )
         {
             const float x_move = x_diff / params.resolution;
             const float y_move = y_diff / params.resolution;
-            const float cos_theta = cos(theta_diff);
-            const float sin_theta = sin(theta_diff);
+            const float cos_theta = cos(yaw_diff);
+            const float sin_theta = sin(yaw_diff);
 
             GridCell* new_grid_cell_array;
             CHECK_ERROR(cudaMalloc(&new_grid_cell_array, grid_cell_count * sizeof(GridCell)));
@@ -199,12 +202,12 @@ void DOGM::updatePose(float new_x, float new_y, float new_theta)
 
             position_x = new_x;
             position_y = new_y;
-            position_theta = new_theta;
+            yaw = new_yaw;
         }
     }
 }
 
-void DOGM::addMeasurementGrid(MeasurementCell* measurement_grid, bool device)
+void DOGM::updateMeasurementGrid(MeasurementCell* measurement_grid, bool device)
 {
     cudaMemcpyKind kind = device ? cudaMemcpyDeviceToDevice : cudaMemcpyHostToDevice;
     CHECK_ERROR(cudaMemcpy(meas_cell_array, measurement_grid, grid_cell_count * sizeof(MeasurementCell), kind));
