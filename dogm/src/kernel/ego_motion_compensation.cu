@@ -13,8 +13,8 @@
 namespace dogm
 {
 
-__global__ void moveParticlesKernel(ParticlesSoA particle_array, float x_move, float y_move,
-                                    float cos_theta, float sin_theta, int particle_count)
+__global__ void moveParticlesKernel(ParticlesSoA particle_array, float x_move, float y_move, float cos_theta,
+                                    float sin_theta, int particle_count)
 {
     for (int i = blockIdx.x * blockDim.x + threadIdx.x; i < particle_count; i += blockDim.x * gridDim.x)
     {

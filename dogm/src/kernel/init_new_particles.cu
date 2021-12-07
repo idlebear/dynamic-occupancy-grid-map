@@ -69,8 +69,9 @@ void normalize_particle_orders(float* particle_orders_array_accum, int particle_
 
     float max = 1.0f;
     cudaMemcpy(&max, &particle_orders_array_accum[particle_orders_count - 1], sizeof(float), cudaMemcpyDeviceToHost);
-    thrust::transform(particle_orders_accum, particle_orders_accum + particle_orders_count, particle_orders_accum,
-                      GPU_LAMBDA(float x) { return x * (v_B / max); });
+    thrust::transform(
+        particle_orders_accum, particle_orders_accum + particle_orders_count, particle_orders_accum,
+        GPU_LAMBDA(float x) { return x * (v_B / max); });
 }
 
 __global__ void copyMassesKernel(const MeasurementCell* __restrict__ meas_cell_array, float* __restrict__ masses,

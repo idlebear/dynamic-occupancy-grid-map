@@ -10,32 +10,33 @@
 #include <memory>
 #include <vector>
 
-namespace dogm {
+namespace dogm
+{
 
-    class LaserMeasurementGrid
+class LaserMeasurementGrid
+{
+public:
+    struct Params
     {
-    public:
-        struct Params
-        {
-            float max_range;
-            float resolution;
-            float fov;
-            float angle_increment;
-        };
-
-        LaserMeasurementGrid(const Params& params, float grid_length, float resolution);
-        ~LaserMeasurementGrid();
-
-        dogm::MeasurementCell* generateGrid(const std::vector<float>& measurements);
-
-    private:
-        dogm::MeasurementCell* meas_grid;
-        int grid_size;
-
-        Params params;
-        std::unique_ptr<Renderer> renderer;
+        float max_range;
+        float resolution;
+        float fov;
+        float angle_increment;
     };
 
-}
+    LaserMeasurementGrid(const Params& params, float grid_length, float resolution);
+    ~LaserMeasurementGrid();
+
+    dogm::MeasurementCell* generateGrid(const std::vector<float>& measurements);
+
+private:
+    dogm::MeasurementCell* meas_grid;
+    int grid_size;
+
+    Params params;
+    std::unique_ptr<Renderer> renderer;
+};
+
+}  // namespace dogm
 
 #endif  // LASER_TO_MEAS_GRID_H

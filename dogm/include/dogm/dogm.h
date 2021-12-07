@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "dogm_types.h"
 #include "dogm/mapping/laser_to_meas_grid.h"
+#include "dogm_types.h"
 
 #include <cuda_runtime.h>
 #include <curand_kernel.h>
