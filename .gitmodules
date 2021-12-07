@@ -1,0 +1,4 @@
+[submodule "dogm/python"]
+	path = dogm/python
+	url = https://github.com/idlebear/dogm_py.git
+	branch = master
