@@ -14,7 +14,7 @@ dogm::LaserMeasurementGrid::LaserMeasurementGrid(const Params& params, float gri
 
     CHECK_ERROR(cudaMalloc(&meas_grid, grid_cell_count * sizeof(dogm::MeasurementCell)));
 
-    renderer = std::make_unique<Renderer>(grid_size, params.fov, grid_length, params.max_range);
+    renderer = std::make_unique<Renderer>(grid_size, params.fov, params.angle_increment, grid_length, params.max_range);
 }
 
 dogm::LaserMeasurementGrid::~LaserMeasurementGrid()

@@ -29,6 +29,8 @@ if (NOT GLEW_FOUND)
 	set(GLEW_LIBRARIES "" CACHE FILEPATH "" )
 endif()
 
+find_package (Eigen3 3.3 REQUIRED NO_MODULE)
+
 LIST (APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 INCLUDE(GoogleTestDownloadAndBuild)
 
@@ -43,6 +45,8 @@ include_directories(
 	${GLFW3_INCLUDE_DIR}
 	${GLEW_INCLUDE_DIRS}
 	${GLM_INCLUDE_DIR}
+	${EIGEN3_INCLUDE_DIR}
+	${CMAKE_HOME_DIRECTORY}/include
 )
 
 set(HEADER_FILES

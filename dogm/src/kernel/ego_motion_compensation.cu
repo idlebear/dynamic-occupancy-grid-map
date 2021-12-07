@@ -20,9 +20,13 @@ __global__ void moveParticlesKernel(ParticlesSoA particle_array, float x_move, f
     {
         auto x = particle_array.state[i][0];
         auto y = particle_array.state[i][1];
+        auto vx = particle_array.state[i][2];
+        auto vy = particle_array.state[i][3];
 
-        particle_array.state[i][0] = cos_theta * x + sin_theta * y - float(x_move);
-        particle_array.state[i][1] = -sin_theta * x + cos_theta * y - float(y_move);
+        particle_array.state[i][0] = cos_theta * x + sin_theta * y - x_move;
+        particle_array.state[i][1] = -sin_theta * x + cos_theta * y - y_move;
+        particle_array.state[i][2] = cos_theta * vx + sin_theta * vy;
+        particle_array.state[i][3] = -sin_theta * vx + cos_theta * vy;
     }
 }
 
@@ -42,6 +46,15 @@ __global__ void moveMapKernel(GridCell* __restrict__ grid_cell_array, const Grid
             int index = x + grid_size * y;
             int new_index = new_x + grid_size * new_y;
             grid_cell_array[new_index] = old_grid_cell_array[index];
+
+            // rotate the mean cell velocities as well
+            // TODO: May also need to 'rotate' the variances as well, but since they are always positive, it
+            //       really amounts to a reproportioning.
+            auto mean_x_vel = grid_cell_array[new_index].mean_x_vel;
+            auto mean_y_vel = grid_cell_array[new_index].mean_y_vel;
+
+            grid_cell_array[new_index].mean_x_vel = cos_theta * mean_x_vel + sin_theta * mean_y_vel;
+            grid_cell_array[new_index].mean_y_vel = -sin_theta * mean_x_vel + cos_theta * mean_y_vel;
         }
     }
 }

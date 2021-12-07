@@ -8,16 +8,18 @@
 
 namespace
 {
-void generateCircleSegmentVertices(std::vector<Vertex>& vertices, float fov, float radius, float cx, float cy)
+void generateCircleSegmentVertices(std::vector<Vertex>& vertices, float fov, float angle_increment, float radius, float cx, float cy)
 {
     vertices.emplace_back(Vertex(glm::vec2(cx, cy), glm::vec2(0.0f, 0.0f)));
 
+    auto steps = ceil( fov / angle_increment);
     float halfFov = fov / 2;
     float startAngle = - halfFov;
     float endAngle   = + halfFov;
 
-    for (int angle = startAngle; angle <= endAngle; angle++)
+    for( int i = 0; i < steps; i++ )
     {
+        auto angle = startAngle + i * angle_increment;
         float angle_radians = angle * M_PI / 180.0f;
 
         float x_val = cos(angle_radians);
@@ -31,7 +33,7 @@ void generateCircleSegmentVertices(std::vector<Vertex>& vertices, float fov, flo
 }
 }  // namespace
 
-Renderer::Renderer(int grid_size, float fov, float grid_range, float max_range) : grid_size(grid_size)
+Renderer::Renderer(int grid_size, float fov, float angle_increment, float grid_range, float max_range) : grid_size(grid_size)
 {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -51,7 +53,7 @@ Renderer::Renderer(int grid_size, float fov, float grid_range, float max_range) 
     // center vehicle in the middle
     float range = 2.0f * (max_range / grid_range);
 
-    generateCircleSegmentVertices(vertices, fov, range, 0.0f, 0.0f);
+    generateCircleSegmentVertices(vertices, fov, angle_increment, range, 0.0f, 0.0f);
 
     polygon = std::make_unique<Polygon>(vertices.data(), vertices.size());
     shader = std::make_unique<Shader>();

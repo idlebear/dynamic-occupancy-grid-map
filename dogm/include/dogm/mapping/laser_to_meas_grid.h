@@ -20,6 +20,7 @@ namespace dogm {
             float max_range;
             float resolution;
             float fov;
+            float angle_increment;
         };
 
         LaserMeasurementGrid(const Params& params, float grid_length, float resolution);
