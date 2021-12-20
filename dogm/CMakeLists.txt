@@ -29,6 +29,13 @@ if (NOT GLEW_FOUND)
 	set(GLEW_LIBRARIES "" CACHE FILEPATH "" )
 endif()
 
+SET( EIGEN3_INCLUDE_DIR "$ENV{EIGEN3_INCLUDE_DIR}" )
+IF( NOT EIGEN3_INCLUDE_DIR )
+	SET( EIGEN3_INCLUDE_DIR "/usr/local/include/eigen3")
+	# MESSAGE( FATAL_ERROR "Please point the environment variable EIGEN3_INCLUDE_DIR to the include directory of your Eigen3 installation.")
+ENDIF()
+INCLUDE_DIRECTORIES ( "${EIGEN3_INCLUDE_DIR}" )
+
 LIST (APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 INCLUDE(GoogleTestDownloadAndBuild)
 
