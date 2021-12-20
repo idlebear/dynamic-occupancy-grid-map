@@ -19,7 +19,7 @@
 class Renderer
 {
 public:
-    Renderer(int grid_size, float fov, float grid_range, float max_range);
+    Renderer(int grid_size, float fov, float angle_increment, float grid_range, float max_range);
 
     ~Renderer();
     Renderer(const Renderer&) = delete;
