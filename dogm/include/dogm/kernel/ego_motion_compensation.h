@@ -17,6 +17,7 @@ __global__ void moveParticlesKernel(ParticlesSoA particle_array, float x_move, f
                                     float cos_theta, float sin_theta, int particle_count);
 
 __global__ void moveMapKernel(GridCell* __restrict__ grid_cell_array, const GridCell* __restrict__ old_grid_cell_array,
-                              float x_move, float y_move, float cos_theta, float sin_theta, int grid_size);
+                              float x_move, float y_move, float cos_theta, float sin_theta, int grid_size,
+                              float grid_resolution);
 
 } /* namespace dogm */

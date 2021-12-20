@@ -194,7 +194,7 @@ void DOGM::updatePose(float new_x, float new_y, float new_yaw)
             CHECK_ERROR(cudaGetLastError());
 
             moveMapKernel<<<grid_dim, dim_block>>>(new_grid_cell_array, grid_cell_array, x_move, y_move,
-                                                   cos_theta, sin_theta, grid_size);
+                                                   cos_theta, sin_theta, grid_size, params.resolution);
             CHECK_ERROR(cudaGetLastError());
 
             CHECK_ERROR(cudaFree(grid_cell_array));
