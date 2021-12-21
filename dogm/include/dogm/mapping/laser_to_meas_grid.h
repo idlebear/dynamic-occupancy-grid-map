@@ -6,7 +6,6 @@
 #define LASER_TO_MEAS_GRID_H
 
 #include "dogm/dogm_types.h"
-#include "dogm/mapping/opengl/renderer.h"
 #include <memory>
 #include <vector>
 
@@ -23,7 +22,7 @@ namespace dogm {
             float angle_increment;
         };
 
-        LaserMeasurementGrid(const Params& params, float grid_length, float resolution);
+        LaserMeasurementGrid(const Params& lidar_params, float grid_length, float grid_resolution);
         ~LaserMeasurementGrid();
 
         dogm::MeasurementCell* generateGrid(const std::vector<float>& measurements);
@@ -31,9 +30,14 @@ namespace dogm {
     private:
         dogm::MeasurementCell* meas_grid;
         int grid_size;
+        float grid_resolution;
 
-        Params params;
-        std::unique_ptr<Renderer> renderer;
+        Params laser_params;
+
+        int polar_width;
+        int polar_height;
+        float2* polar_grid;
+        float theta_min;
     };
 
 }
