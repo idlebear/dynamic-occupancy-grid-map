@@ -3,22 +3,24 @@
 // See accompanying LICENSE file for detailed information
 
 #include "dogm/mapping/laser_to_meas_grid.h"
-#include "dogm/mapping/opengl/renderer.h"
-
 #include "dogm/mapping/kernel/measurement_grid.h"
 
-dogm::LaserMeasurementGrid::LaserMeasurementGrid(const Params& params, float grid_length, float resolution)
-    : grid_size(static_cast<int>(grid_length / resolution)), params(params)
+dogm::LaserMeasurementGrid::LaserMeasurementGrid(const Params& laser_params, float grid_length, float grid_resolution)
+    : grid_size(static_cast<int>(grid_length / grid_resolution)), grid_resolution( grid_resolution), laser_params(laser_params),
+      polar_width(ceil( laser_params.fov / laser_params.angle_increment )), polar_height( ceil( laser_params.max_range / laser_params.resolution ) )
 {
     int grid_cell_count = grid_size * grid_size;
 
     CHECK_ERROR(cudaMalloc(&meas_grid, grid_cell_count * sizeof(dogm::MeasurementCell)));
 
-    renderer = std::make_unique<Renderer>(grid_size, params.fov, grid_length, params.max_range);
+    theta_min = - (laser_params.fov / 2.0);
+
+    CHECK_ERROR(cudaMalloc(&polar_grid, polar_width * polar_height * sizeof(float2)));
 }
 
 dogm::LaserMeasurementGrid::~LaserMeasurementGrid()
 {
+    CHECK_ERROR(cudaFree(polar_grid));
     CHECK_ERROR(cudaFree(meas_grid));
 }
 
@@ -31,37 +33,22 @@ dogm::MeasurementCell* dogm::LaserMeasurementGrid::generateGrid(const std::vecto
     CHECK_ERROR(
         cudaMemcpy(d_measurements, measurements.data(), num_measurements * sizeof(float), cudaMemcpyHostToDevice));
 
-    const int polar_width = num_measurements;
-    const int polar_height = static_cast<int>(params.max_range / params.resolution);
-
     dim3 dim_block(32, 32);
-    dim3 grid_dim(divUp(polar_width, dim_block.x), divUp(polar_height, dim_block.y));
+    dim3 polar_grid_dim(divUp(polar_width, dim_block.x), divUp(polar_height, dim_block.y));
     dim3 cart_grid_dim(divUp(grid_size, dim_block.x), divUp(grid_size, dim_block.y));
 
-    const float anisotropy_level = 16.0f;
-    Texture polar_texture(polar_width, polar_height, anisotropy_level);
-    cudaSurfaceObject_t polar_surface;
+    // convert the measurement information into a polar representation
 
     // create polar texture
-    polar_texture.beginCudaAccess(&polar_surface);
-    createPolarGridTextureKernel<<<grid_dim, dim_block>>>(polar_surface, d_measurements, polar_width, polar_height,
-                                                          params.resolution);
+    createPolarGridKernel<<<polar_grid_dim, dim_block>>>(polar_grid, d_measurements, polar_width, polar_height,
+                                                          laser_params.resolution);
 
     CHECK_ERROR(cudaGetLastError());
-    polar_texture.endCudaAccess(polar_surface);
 
-    // render cartesian image to texture using polar texture
-    renderer->renderToTexture(polar_texture);
-
-    auto framebuffer = renderer->getFrameBuffer();
-    cudaSurfaceObject_t cartesian_surface;
-
-    framebuffer->beginCudaAccess(&cartesian_surface);
-    // transform RGBA texture to measurement grid
-    cartesianGridToMeasurementGridKernel<<<cart_grid_dim, dim_block>>>(meas_grid, cartesian_surface, grid_size);
-
+    // // transform polar representation to a cartesian grid
+    transformPolarGridToCartesian<<<cart_grid_dim, dim_block>>>( meas_grid, grid_size, grid_resolution,
+        polar_grid, polar_width, polar_height, theta_min, laser_params.angle_increment, laser_params.resolution );
     CHECK_ERROR(cudaGetLastError());
-    framebuffer->endCudaAccess(cartesian_surface);
 
     CHECK_ERROR(cudaFree(d_measurements));
     CHECK_ERROR(cudaDeviceSynchronize());
