@@ -7,14 +7,13 @@
 
 dogm::LaserMeasurementGrid::LaserMeasurementGrid(const Params& laser_params, float grid_length, float grid_resolution)
     : grid_size(static_cast<int>(grid_length / grid_resolution)), grid_resolution( grid_resolution), laser_params(laser_params),
-      polar_width(ceil( laser_params.fov / laser_params.angle_increment )), polar_height( ceil( laser_params.max_range / laser_params.resolution ) )
+      polar_width(ceil( laser_params.fov / laser_params.angle_increment )), polar_height( ceil( laser_params.max_range / laser_params.resolution ) ),
+      theta_min( - (laser_params.fov / 2.0) )
 {
+    assert( laser_params.angle_increment > 0 );
+
     int grid_cell_count = grid_size * grid_size;
-
     CHECK_ERROR(cudaMalloc(&meas_grid, grid_cell_count * sizeof(dogm::MeasurementCell)));
-
-    theta_min = - (laser_params.fov / 2.0);
-
     CHECK_ERROR(cudaMalloc(&polar_grid, polar_width * polar_height * sizeof(float2)));
 }
 
@@ -40,6 +39,7 @@ dogm::MeasurementCell* dogm::LaserMeasurementGrid::generateGrid(const std::vecto
     // convert the measurement information into a polar representation
 
     // create polar texture
+    CHECK_ERROR(cudaMemset(polar_grid, 0, polar_height * polar_width * sizeof(float2)));
     createPolarGridKernel<<<polar_grid_dim, dim_block>>>(polar_grid, d_measurements, polar_width, polar_height,
                                                           laser_params.resolution);
 

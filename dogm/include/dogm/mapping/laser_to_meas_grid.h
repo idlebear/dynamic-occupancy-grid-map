@@ -19,9 +19,10 @@ namespace dogm {
             float max_range;
             float resolution;
             float fov;
+            float angle_increment;
         };
 
-        LaserMeasurementGrid(const Params& lidar_params, float grid_length, float grid_resolution);
+        LaserMeasurementGrid(const Params& laser_params, float grid_length, float grid_resolution);
         ~LaserMeasurementGrid();
 
         dogm::MeasurementCell* generateGrid(const std::vector<float>& measurements);

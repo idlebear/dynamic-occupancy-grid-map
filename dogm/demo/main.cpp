@@ -36,6 +36,8 @@ int main(int argc, const char** argv)
     laser_params.fov = 120.0f;
     laser_params.max_range = 50.0f;
     laser_params.resolution = grid_params.resolution;  // TODO make independent of grid_params.resolution
+    laser_params.angle_increment = 1.2f;  // fov / sensor_horizontal_scan_points
+
     dogm::LaserMeasurementGrid grid_generator(laser_params, grid_params.size, grid_params.resolution);
 
     const int sensor_horizontal_scan_points = 100;
