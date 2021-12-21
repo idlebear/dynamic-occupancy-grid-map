@@ -53,47 +53,47 @@ include_directories(
 )
 
 set(HEADER_FILES
-	include/dogm/kernel/init.h
-	include/dogm/kernel/init_new_particles.h
-	include/dogm/kernel/mass_update.h
-	include/dogm/kernel/particle_to_grid.h
-	include/dogm/kernel/predict.h
-	include/dogm/kernel/resampling.h
-	include/dogm/kernel/statistical_moments.h
-	include/dogm/kernel/update_persistent_particles.h
-	include/dogm/kernel/ego_motion_compensation.h
-	include/dogm/common.h
-	include/dogm/cuda_utils.h
-	include/dogm/dogm.h
-	include/dogm/dogm_types.h
-	include/dogm/mapping/laser_to_meas_grid.h
-	include/dogm/mapping/kernel/measurement_grid.h
-	include/dogm/mapping/opengl/framebuffer.h
-	include/dogm/mapping/opengl/polygon.h
-	include/dogm/mapping/opengl/shader.h
-	include/dogm/mapping/opengl/texture.h
+		${CMAKE_HOME_DIRECTORY}/include/dogm/kernel/init.h
+		${CMAKE_HOME_DIRECTORY}/include/dogm/kernel/init_new_particles.h
+		${CMAKE_HOME_DIRECTORY}/include/dogm/kernel/mass_update.h
+		${CMAKE_HOME_DIRECTORY}/include/dogm/kernel/particle_to_grid.h
+		${CMAKE_HOME_DIRECTORY}/include/dogm/kernel/predict.h
+		${CMAKE_HOME_DIRECTORY}/include/dogm/kernel/resampling.h
+		${CMAKE_HOME_DIRECTORY}/include/dogm/kernel/statistical_moments.h
+		${CMAKE_HOME_DIRECTORY}/include/dogm/kernel/update_persistent_particles.h
+		${CMAKE_HOME_DIRECTORY}/include/dogm/kernel/ego_motion_compensation.h
+		${CMAKE_HOME_DIRECTORY}/include/dogm/common.h
+		${CMAKE_HOME_DIRECTORY}/include/dogm/cuda_utils.h
+		${CMAKE_HOME_DIRECTORY}/include/dogm/dogm.h
+		${CMAKE_HOME_DIRECTORY}/include/dogm/dogm_types.h
+		${CMAKE_HOME_DIRECTORY}/include/dogm/mapping/laser_to_meas_grid.h
+		${CMAKE_HOME_DIRECTORY}/include/dogm/mapping/kernel/measurement_grid.h
+#		${CMAKE_HOME_DIRECTORY}/include/dogm/mapping/opengl/framebuffer.h
+#		${CMAKE_HOME_DIRECTORY}/include/dogm/mapping/opengl/polygon.h
+#		${CMAKE_HOME_DIRECTORY}/include/dogm/mapping/opengl/shader.h
+#		${CMAKE_HOME_DIRECTORY}/include/dogm/mapping/opengl/texture.h
 )
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${HEADER_FILES})
 
 set(SRC_FILES
-	src/kernel/init.cu
-	src/kernel/init_new_particles.cu
-	src/kernel/mass_update.cu
-	src/kernel/particle_to_grid.cu
-	src/kernel/predict.cu
-	src/kernel/resampling.cu
-	src/kernel/statistical_moments.cu
-	src/kernel/update_persistent_particles.cu
-	src/kernel/ego_motion_compensation.cu
-	src/dogm.cu
-	src/mapping/laser_to_meas_grid.cu
-	src/mapping/kernel/measurement_grid.cu
-	src/mapping/opengl/framebuffer.cpp
-	src/mapping/opengl/polygon.cpp
-	src/mapping/opengl/renderer.cpp
-	src/mapping/opengl/shader.cpp
-	src/mapping/opengl/texture.cpp
+	${CMAKE_HOME_DIRECTORY}/src/kernel/init.cu
+		${CMAKE_HOME_DIRECTORY}/src/kernel/init_new_particles.cu
+		${CMAKE_HOME_DIRECTORY}/src/kernel/mass_update.cu
+		${CMAKE_HOME_DIRECTORY}/src/kernel/particle_to_grid.cu
+		${CMAKE_HOME_DIRECTORY}/src/kernel/predict.cu
+		${CMAKE_HOME_DIRECTORY}/src/kernel/resampling.cu
+		${CMAKE_HOME_DIRECTORY}/src/kernel/statistical_moments.cu
+		${CMAKE_HOME_DIRECTORY}/src/kernel/update_persistent_particles.cu
+		${CMAKE_HOME_DIRECTORY}/src/kernel/ego_motion_compensation.cu
+		${CMAKE_HOME_DIRECTORY}/src/dogm.cu
+		${CMAKE_HOME_DIRECTORY}/src/mapping/laser_to_meas_grid.cu
+		${CMAKE_HOME_DIRECTORY}/src/mapping/kernel/measurement_grid.cu
+#		${CMAKE_HOME_DIRECTORY}/src/mapping/opengl/framebuffer.cpp
+#		${CMAKE_HOME_DIRECTORY}/src/mapping/opengl/polygon.cpp
+#		${CMAKE_HOME_DIRECTORY}/src/mapping/opengl/renderer.cpp
+#		${CMAKE_HOME_DIRECTORY}/src/mapping/opengl/shader.cpp
+#		${CMAKE_HOME_DIRECTORY}/src/mapping/opengl/texture.cpp
 )
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SRC_FILES})
@@ -133,3 +133,4 @@ if(BUILD_TESTS)
 endif()
 
 add_subdirectory(demo)
+add_subdirectory(python)
