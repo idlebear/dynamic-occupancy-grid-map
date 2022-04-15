@@ -29,11 +29,7 @@ if (NOT GLEW_FOUND)
 	set(GLEW_LIBRARIES "" CACHE FILEPATH "" )
 endif()
 
-SET( EIGEN3_INCLUDE_DIR "$ENV{EIGEN3_INCLUDE_DIR}" )
-IF( NOT EIGEN3_INCLUDE_DIR )
-	SET( EIGEN3_INCLUDE_DIR "/usr/local/include/eigen3")
-	# MESSAGE( FATAL_ERROR "Please point the environment variable EIGEN3_INCLUDE_DIR to the include directory of your Eigen3 installation.")
-ENDIF()
+find_package(Eigen3 REQUIRED)
 INCLUDE_DIRECTORIES ( "${EIGEN3_INCLUDE_DIR}" )
 
 LIST (APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
@@ -68,10 +64,6 @@ set(HEADER_FILES
 		${CMAKE_HOME_DIRECTORY}/include/dogm/dogm_types.h
 		${CMAKE_HOME_DIRECTORY}/include/dogm/mapping/laser_to_meas_grid.h
 		${CMAKE_HOME_DIRECTORY}/include/dogm/mapping/kernel/measurement_grid.h
-#		${CMAKE_HOME_DIRECTORY}/include/dogm/mapping/opengl/framebuffer.h
-#		${CMAKE_HOME_DIRECTORY}/include/dogm/mapping/opengl/polygon.h
-#		${CMAKE_HOME_DIRECTORY}/include/dogm/mapping/opengl/shader.h
-#		${CMAKE_HOME_DIRECTORY}/include/dogm/mapping/opengl/texture.h
 )
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${HEADER_FILES})
@@ -89,11 +81,6 @@ set(SRC_FILES
 		${CMAKE_HOME_DIRECTORY}/src/dogm.cu
 		${CMAKE_HOME_DIRECTORY}/src/mapping/laser_to_meas_grid.cu
 		${CMAKE_HOME_DIRECTORY}/src/mapping/kernel/measurement_grid.cu
-#		${CMAKE_HOME_DIRECTORY}/src/mapping/opengl/framebuffer.cpp
-#		${CMAKE_HOME_DIRECTORY}/src/mapping/opengl/polygon.cpp
-#		${CMAKE_HOME_DIRECTORY}/src/mapping/opengl/renderer.cpp
-#		${CMAKE_HOME_DIRECTORY}/src/mapping/opengl/shader.cpp
-#		${CMAKE_HOME_DIRECTORY}/src/mapping/opengl/texture.cpp
 )
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SRC_FILES})
