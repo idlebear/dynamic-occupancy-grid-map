@@ -69,15 +69,15 @@ __device__ float2 inverse_sensor_model(int i, float resolution, float zk, float 
 __global__ void createPolarGridKernel(float2* polar_grid, const float* __restrict__ measurements,
     int width, int height, float resolution)
 {
-    const int theta = int(blockIdx.x * blockDim.x + threadIdx.x);
-    const int range = int(blockIdx.y * blockDim.y + threadIdx.y);
+    const int theta = blockIdx.x * blockDim.x + threadIdx.x;
+    const int range = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (theta < width && range < height )
+    if (theta < width && range < height)
     {
         const float epsilon = 0.00001f;
         const float zk = measurements[theta];
 
-        float2 masses = inverse_sensor_model(range, resolution, zk, height );
+        float2 masses = inverse_sensor_model(range, resolution, zk, height);
         masses.x = max(epsilon, min(1.0f - epsilon, masses.x));
         masses.y = max(epsilon, min(1.0f - epsilon, masses.y));
         polar_grid[range * width + theta] = masses;
@@ -93,11 +93,11 @@ __global__ void transformPolarGridToCartesian(
     const int x = blockIdx.x * blockDim.x + threadIdx.x;
     const int y = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if( x < grid_size && y < grid_size )
+    if (x < grid_size && y < grid_size)
     {
         // find the true theta/radius that corresponds to the requested (x,y)
-        auto grid_x = (x - grid_size / 2.0) * grid_resolution;
-        auto grid_y = (y - grid_size / 2.0) * grid_resolution;
+        float grid_x = (x - grid_size / 2.0) * grid_resolution;
+        float grid_y = (y - grid_size / 2.0) * grid_resolution;
 
         // convert the desired X and Y coordinates in grid form into an angle and
         // radius.  The polar map cell is then found by subtracting the minimum angle and
