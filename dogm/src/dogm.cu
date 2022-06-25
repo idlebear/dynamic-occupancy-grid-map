@@ -175,7 +175,7 @@ void DOGM::updatePose(float new_x, float new_y, float new_yaw)
         const float y_diff = new_y - position_y;
         const float yaw_diff = new_yaw - yaw;
 
-        if (fabsf(x_diff) > params.resolution || fabsf(y_diff) > params.resolution || fabsf(yaw_diff) > params.resolution )
+        if (fabsf(x_diff) > params.resolution || fabsf(y_diff) > params.resolution || fabsf(yaw_diff) > 0.01 )
         {
             const float x_move = x_diff / params.resolution;
             const float y_move = y_diff / params.resolution;
@@ -190,11 +190,11 @@ void DOGM::updatePose(float new_x, float new_y, float new_yaw)
             dim3 grid_dim(divUp(grid_size, dim_block.x), divUp(grid_size, dim_block.y));
 
             moveParticlesKernel<<<particles_grid, block_dim>>>(particle_array, x_move, y_move,
-                                                               cos_theta, sin_theta, particle_count);
+                                                               cos_theta, sin_theta, particle_count, grid_size);
             CHECK_ERROR(cudaGetLastError());
 
             moveMapKernel<<<grid_dim, dim_block>>>(new_grid_cell_array, grid_cell_array, x_move, y_move,
-                                                   cos_theta, sin_theta, grid_size, params.resolution);
+                                                   cos_theta, sin_theta, grid_size);
             CHECK_ERROR(cudaGetLastError());
 
             CHECK_ERROR(cudaFree(grid_cell_array));
