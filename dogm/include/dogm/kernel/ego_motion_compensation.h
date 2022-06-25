@@ -14,10 +14,9 @@ struct GridCell;
 struct ParticlesSoA;
 
 __global__ void moveParticlesKernel(ParticlesSoA particle_array, float x_move, float y_move,
-                                    float cos_theta, float sin_theta, int particle_count);
+                                    float cos_theta, float sin_theta, int particle_count, int grid_size);
 
 __global__ void moveMapKernel(GridCell* __restrict__ grid_cell_array, const GridCell* __restrict__ old_grid_cell_array,
-                              float x_move, float y_move, float cos_theta, float sin_theta, int grid_size,
-                              float grid_resolution);
+                              float x_move, float y_move, float cos_theta, float sin_theta, int grid_size);
 
 } /* namespace dogm */
