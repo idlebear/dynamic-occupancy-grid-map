@@ -4,11 +4,6 @@ set(OpenGL_GL_PREFERENCE "GLVND")
 
 find_package(OpenGL REQUIRED)
 
-find_package(GLM)
-if (NOT GLM_FOUND)
-	set(GLM_INCLUDE_DIR "" CACHE PATH "")
-endif()
-
 find_package(GLFW3)
 if (NOT GLFW3_FOUND)
 	set(GLFW3_INCLUDE_DIR "" CACHE PATH "")
@@ -49,12 +44,17 @@ SET(SRC_FILES
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SRC_FILES})
 
-ADD_LIBRARY(simulator STATIC ${SRC_FILES} ${HEADER_FILES})
+ADD_LIBRARY(dogm_simulator SHARED ${SRC_FILES} ${HEADER_FILES})
 
-TARGET_INCLUDE_DIRECTORIES(simulator
+TARGET_INCLUDE_DIRECTORIES(dogm_simulator
     PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${PROJECT_SOURCE_DIR}/include)
+
+TARGET_LINK_LIBRARIES(dogm_simulator
+    ${GLFW3_LIBRARY}
+    ${GLEW_LIBRARIES}
+)
 
 if(BUILD_TESTS)
     add_subdirectory(test)
