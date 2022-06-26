@@ -12,8 +12,8 @@
 #include <glm/mat4x4.hpp>
 #include <glm/vec4.hpp>
 #include <memory>
-
 #include <vector>
+#include <opencv2/opencv.hpp>
 
 namespace dogm
 {
@@ -73,26 +73,32 @@ public:
      * @param measurement_grid new measurement grid map.
      * @param new_x new x pose.
      * @param new_y new y pose.
-     * @param new_yaw new yaw.
+     * @param new_yaw new yaw pose.
      * @param dt delta time since the last update.
      * @param device whether the measurement grid resides in GPU memory (default: true).
      */
-    void updateGrid(MeasurementCell* measurement_grid, float new_x, float new_y, float new_yaw, float dt,
-                    bool device = true);
+     void updateGrid(MeasurementCellsSoA measurement_grid, float new_x, float new_y, float new_yaw, float dt);
 
     /**
      * Returns the grid map in the host memory.
      *
      * @return grid map.
      */
-    std::vector<GridCell> getGridCells() const;
+    GridCellsSoA getGridCells() const;
+
+
+    /**
+     * Releases memory allocated for grid cells.
+     * @param grid_cells previously allocated GridCellSoA returned for disposal.
+     */
+    void freeGridCells( GridCellsSoA grid_cells ) const;
 
     /**
      * Returns the measurement grid map in the host memory.
      *
      * @return measurement grid map.
      */
-    std::vector<MeasurementCell> getMeasurementCells() const;
+    MeasurementCellsSoA getMeasurementCells() const;
 
     /**
      * Returns the persistent particles of the particle filter.
@@ -122,7 +128,7 @@ public:
      */
     float getPositionX() const { return position_x; }
 
-    /**
+   /**
      * Returns the vehicles yaw.
      *
      * @return yaw.
@@ -138,11 +144,15 @@ public:
 
     int getIteration() const { return iteration; }
 
+    cv::Mat getPredOccMassImage(GridCellsSoA& grid_cells) const;
+    cv::Mat getNewBornOccMassImage(GridCellsSoA& grid_cells) const;
+    cv::Mat getPersOccMassImage(GridCellsSoA& grid_cells) const;
+    cv::Mat getOccupancyImage(GridCellsSoA& grid_cells) const;
 private:
     void initialize();
 
     void updatePose(float new_x, float new_y, float new_yaw);
-    void updateMeasurementGrid(MeasurementCell* measurement_grid, bool device);
+    void updateMeasurementGrid(MeasurementCellsSoA measurement_grid);
 
 public:
     void initializeParticles();
@@ -154,15 +164,16 @@ public:
     void initializeNewParticles();
     void statisticalMoments();
     void resampling();
+    void resampling_parallel_ns();
 
 public:
     Params params;
 
-    GridCell* grid_cell_array;
+    GridCellsSoA grid_cell_array;
     ParticlesSoA particle_array;
     ParticlesSoA particle_array_next;
     ParticlesSoA birth_particle_array;
-    MeasurementCell* meas_cell_array;
+    MeasurementCellsSoA meas_cell_array;
 
     float* weight_array;
     float* birth_weight_array;
@@ -176,6 +187,8 @@ public:
     float* vel_xy_array;
 
     float* rand_array;
+    int* idx_array_up;
+    int* idx_array_down;
 
     curandState* rng_states;
 
@@ -185,6 +198,7 @@ public:
     int particle_count;
     int new_born_particle_count;
 
+    cudaDeviceProp device_prop;
     dim3 block_dim;
     dim3 particles_grid;
     dim3 birth_particles_grid;
