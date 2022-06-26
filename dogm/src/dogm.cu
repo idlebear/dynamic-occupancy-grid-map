@@ -148,6 +148,11 @@ GridCellsSoA DOGM::getGridCells() const
     return grid_cells;
 }
 
+void DOGM::freeGridCells( GridCellsSoA grid_cells ) const
+{
+    grid_cells.free();
+}
+
 MeasurementCellsSoA DOGM::getMeasurementCells() const
 {
     MeasurementCellsSoA meas_cells(grid_cell_count, false);

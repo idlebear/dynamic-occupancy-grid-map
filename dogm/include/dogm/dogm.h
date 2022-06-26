@@ -86,6 +86,13 @@ public:
      */
     GridCellsSoA getGridCells() const;
 
+
+    /**
+     * Releases memory allocated for grid cells.
+     * @param grid_cells previously allocated GridCellSoA returned for disposal.
+     */
+    void freeGridCells( GridCellsSoA grid_cells ) const;
+
     /**
      * Returns the measurement grid map in the host memory.
      *
