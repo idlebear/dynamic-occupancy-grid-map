@@ -25,10 +25,10 @@ namespace dogm {
         LaserMeasurementGrid(const Params& lidar_params, float grid_length, float grid_resolution);
         ~LaserMeasurementGrid();
 
-        dogm::MeasurementCell* generateGrid(const std::vector<float>& measurements);
+        dogm::MeasurementCellsSoA generateGrid(const std::vector<float>& measurements);
 
     private:
-        dogm::MeasurementCell* meas_grid;
+        dogm::MeasurementCellsSoA meas_grid;
         int grid_size;
         float grid_resolution;
 

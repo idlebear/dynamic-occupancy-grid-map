@@ -31,10 +31,10 @@ if (NOT GLEW_FOUND)
 endif()
 
 find_package(OpenCV REQUIRED)
-find_package(Eigen3 REQUIRED)
+find_package(Eigen3 3.4 REQUIRED)
 
 LIST (APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
-#INCLUDE(GoogleTestDownloadAndBuild)
+INCLUDE(GoogleTestDownloadAndBuild)
 
 include_directories(
 	SYSTEM

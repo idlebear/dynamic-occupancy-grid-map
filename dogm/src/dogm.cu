@@ -30,7 +30,7 @@
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/cuda.hpp>
-#include <opencv2/cudawarping.hpp>
+// #include <opencv2/cudawarping.hpp>
 
 
 namespace dogm
@@ -98,8 +98,7 @@ DOGM::~DOGM()
     CUDA_CALL(cudaFree(vel_x_squared_array));
     CUDA_CALL(cudaFree(vel_y_squared_array));
     CUDA_CALL(cudaFree(vel_xy_array));
-
-    CUDA_CALL(cudaFree(rand_array));
+   CUDA_CALL(cudaFree(rand_array));
 
     CUDA_CALL(cudaFree(rng_states));
     CUDA_CALL(cudaFree(idx_array_up));
@@ -121,10 +120,10 @@ void DOGM::initialize()
     CUDA_CALL(cudaStreamDestroy(grid_stream));
 }
 
-void DOGM::updateGrid(MeasurementCellsSoA measurement_grid, float new_x, float new_y, float dt, bool device)
+void DOGM::updateGrid( MeasurementCellsSoA measurement_grid, float new_x, float new_y, float new_yaw, float dt )
 {
-    updateMeasurementGrid(measurement_grid, device);
-    updatePose(new_x, new_y);
+    updateMeasurementGrid(measurement_grid);
+    updatePose(new_x, new_y, new_yaw);
 
     particlePrediction(dt);
     particleAssignment();
@@ -133,8 +132,8 @@ void DOGM::updateGrid(MeasurementCellsSoA measurement_grid, float new_x, float n
     initializeNewParticles();
     statisticalMoments();
 
-    // resampling();
-    resampling_parallel_ns();
+     resampling();
+//    resampling_parallel_ns();
 
     particle_array = particle_array_next;
 
@@ -165,7 +164,7 @@ ParticlesSoA DOGM::getParticles() const
     return particles;
 }
 
-void DOGM::updatePose(float new_x, float new_y)
+void DOGM::updatePose(float new_x, float new_y, float new_yaw)
 {
     if (!first_pose_received)
     {
@@ -178,11 +177,6 @@ void DOGM::updatePose(float new_x, float new_y)
         const int x_move = std::nearbyint((new_x - position_x) / params.resolution);
         const int y_move = std::nearbyint((new_y - position_y) / params.resolution);
         const float yaw_diff = new_yaw - yaw;
-
-
-            GridCell* new_grid_cell_array;
-            CHECK_ERROR(cudaMalloc(&new_grid_cell_array, grid_cell_count * sizeof(GridCell)));
-            CHECK_ERROR(cudaMemset(new_grid_cell_array, 0, grid_cell_count * sizeof(GridCell)));
 
         if (x_move != 0 || y_move != 0 || fabsf(yaw_diff) > 0.01 )
         {
@@ -200,7 +194,7 @@ void DOGM::updatePose(float new_x, float new_y)
             moveMapKernel<<<grid_dim, dim_block>>>(tmp_grid_cell_array, grid_cell_array, meas_cell_array, particle_array,
                                                    x_move, y_move, cos_theta, sin_theta, grid_size);
 
-            grid_cell_array.move( old_grid_cell_array );
+            grid_cell_array.move( tmp_grid_cell_array );
 
             position_x = new_x;
             position_y = new_y;
@@ -208,9 +202,9 @@ void DOGM::updatePose(float new_x, float new_y)
     }
 }
 
-void DOGM::updateMeasurementGrid(MeasurementCellsSoA measurement_grid, bool device)
+void DOGM::updateMeasurementGrid(MeasurementCellsSoA measurement_grid)
 {
-    cudaMemcpyKind kind = device ? cudaMemcpyDeviceToDevice : cudaMemcpyHostToDevice;
+    cudaMemcpyKind kind = measurement_grid.device ? cudaMemcpyDeviceToDevice : cudaMemcpyHostToDevice;
     meas_cell_array.copy(measurement_grid, kind);
 
     if (!first_measurement_received)
@@ -432,7 +426,7 @@ void DOGM::resampling_parallel_ns()
     resampleSystematicIndexDown<<<particles_grid, block_dim>>>(particle_count,
         seed, idx_array_down, accumulated_sum);
 
-    // CHECK_ERROR(cudaDeviceSynchronize());
+    // CUDA_CALL(cudaDeviceSynchronize());
     // cudaDeviceSynchronize();
 
     resampleIndexKernel<<<particles_grid, block_dim>>>(particle_array, particle_array_next,

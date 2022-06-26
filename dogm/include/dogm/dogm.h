@@ -77,8 +77,7 @@ public:
      * @param dt delta time since the last update.
      * @param device whether the measurement grid resides in GPU memory (default: true).
      */
-     void updateGrid(MeasurementCellsSoA measurement_grid, float new_x, float new_y, float new_yaw, float dt,
-                    bool device = true);
+     void updateGrid(MeasurementCellsSoA measurement_grid, float new_x, float new_y, float new_yaw, float dt);
 
     /**
      * Returns the grid map in the host memory.
@@ -146,7 +145,7 @@ private:
     void initialize();
 
     void updatePose(float new_x, float new_y, float new_yaw);
-    void updateMeasurementGrid(MeasurementCellsSoA measurement_grid, bool device);
+    void updateMeasurementGrid(MeasurementCellsSoA measurement_grid);
 
 public:
     void initializeParticles();

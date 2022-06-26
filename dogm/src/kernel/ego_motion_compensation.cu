@@ -52,7 +52,7 @@ __global__ void moveParticlesKernel(ParticlesSoA particle_array, int x_move, int
 
 __global__ void moveMapKernel(GridCellsSoA grid_cell_array, GridCellsSoA old_grid_cell_array,
                               MeasurementCellsSoA meas_cell_array, ParticlesSoA particle_array,
-                              int x_move, int y_move, int grid_size)
+                              int x_move, int y_move, float cos_theta, float sin_theta, int grid_size)
 {
     const int x = blockIdx.x * blockDim.x + threadIdx.x;
     const int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -63,19 +63,20 @@ __global__ void moveMapKernel(GridCellsSoA grid_cell_array, GridCellsSoA old_gri
 
         /// calculate rotation relative to the centre
         int grid_centre = grid_size / 2;
-        auto rel_x = x - grid_centre - x_move;
-        auto rel_y = y - grid_centre - y_move;
-        auto new_x = int( cos_theta * rel_x + sin_theta * rel_y + grid_centre);
-        auto new_y = int(-sin_theta * rel_x + cos_theta * rel_y + grid_centre);
+        auto rel_x = x - grid_centre + x_move;
+        auto rel_y = y - grid_centre + y_move;
+        auto old_x = int( cos_theta * rel_x - sin_theta * rel_y + grid_centre);
+        auto old_y = int( sin_theta * rel_x + cos_theta * rel_y + grid_centre);
 
-        int old_index = x + grid_size * y;
+        int old_index = old_x + grid_size * old_y;
+        int new_index = x + grid_size * y;
 
         // BUGBUG -- keep the revised correction around for comparison
         // int old_y = y + y_move;
         // int old_x = x + x_move;
         // int old_index = old_x + grid_size * old_y;
 
-        if (new_x >= 0 && new_x < grid_size && new_y >= 0 && new_y < grid_size && meas_cell_array.occ_mass[index] > eps)
+        if (old_x >= 0 && old_x < grid_size && old_y >= 0 && old_y < grid_size && meas_cell_array.occ_mass[old_index] > eps)
         {
             grid_cell_array.copy(old_grid_cell_array, new_index, old_index);
 
@@ -93,25 +94,25 @@ __global__ void moveMapKernel(GridCellsSoA grid_cell_array, GridCellsSoA old_gri
             // delete particles on old cells? looks like it break something
             // for (int i = old_grid_cell_array.start_idx[old_index]; i < old_grid_cell_array.end_idx[old_index]; ++i)
             //     particle_array.weight[i] = 0;
-            grid_cell_array.start_idx[index] = -1;
-            grid_cell_array.end_idx[index] = -1;
-            grid_cell_array.new_born_occ_mass[index] = 0.0f;
-            grid_cell_array.pers_occ_mass[index] = 0.0f;
-            grid_cell_array.free_mass[index] = 0.0f;
-            grid_cell_array.occ_mass[index] = 0.0f;
-            grid_cell_array.pred_occ_mass[index] = 0.0f;
+            grid_cell_array.start_idx[new_index] = -1;
+            grid_cell_array.end_idx[new_index] = -1;
+            grid_cell_array.new_born_occ_mass[new_index] = 0.0f;
+            grid_cell_array.pers_occ_mass[new_index] = 0.0f;
+            grid_cell_array.free_mass[new_index] = 0.0f;
+            grid_cell_array.occ_mass[new_index] = 0.0f;
+            grid_cell_array.pred_occ_mass[new_index] = 0.0f;
 
-            grid_cell_array.mu_A[index] = 0.0f;
-            grid_cell_array.mu_UA[index] = 0.0f;
+            grid_cell_array.mu_A[new_index] = 0.0f;
+            grid_cell_array.mu_UA[new_index] = 0.0f;
 
-            grid_cell_array.w_A[index] = 0.0f;
-            grid_cell_array.w_UA[index] = 0.0f;
+            grid_cell_array.w_A[new_index] = 0.0f;
+            grid_cell_array.w_UA[new_index] = 0.0f;
 
-            grid_cell_array.mean_x_vel[index] = 0.0f;
-            grid_cell_array.mean_y_vel[index] = 0.0f;
-            grid_cell_array.var_x_vel[index] = 0.0f;
-            grid_cell_array.var_y_vel[index] = 0.0f;
-            grid_cell_array.covar_xy_vel[index] = 0.0f;
+            grid_cell_array.mean_x_vel[new_index] = 0.0f;
+            grid_cell_array.mean_y_vel[new_index] = 0.0f;
+            grid_cell_array.var_x_vel[new_index] = 0.0f;
+            grid_cell_array.var_y_vel[new_index] = 0.0f;
+            grid_cell_array.covar_xy_vel[new_index] = 0.0f;
 
         }
     }

@@ -11,26 +11,25 @@ dogm::LaserMeasurementGrid::LaserMeasurementGrid(const Params& laser_params, flo
 {
     int grid_cell_count = grid_size * grid_size;
 
-    CHECK_ERROR(cudaMalloc(&meas_grid, grid_cell_count * sizeof(dogm::MeasurementCell)));
+    meas_grid.init(grid_cell_count, true);
 
     theta_min = - (laser_params.fov / 2.0);
-
-    CHECK_ERROR(cudaMalloc(&polar_grid, polar_width * polar_height * sizeof(float2)));
+    CUDA_CALL(cudaMalloc(&polar_grid, polar_width * polar_height * sizeof(float2)));
 }
 
 dogm::LaserMeasurementGrid::~LaserMeasurementGrid()
 {
-    CHECK_ERROR(cudaFree(polar_grid));
-    CHECK_ERROR(cudaFree(meas_grid));
+    CUDA_CALL(cudaFree(polar_grid));
+    meas_grid.free();
 }
 
-dogm::MeasurementCell* dogm::LaserMeasurementGrid::generateGrid(const std::vector<float>& measurements)
+dogm::MeasurementCellsSoA dogm::LaserMeasurementGrid::generateGrid(const std::vector<float>& measurements)
 {
     const int num_measurements = measurements.size();
 
     float* d_measurements;
-    CHECK_ERROR(cudaMalloc(&d_measurements, num_measurements * sizeof(float)));
-    CHECK_ERROR(
+    CUDA_CALL(cudaMalloc(&d_measurements, num_measurements * sizeof(float)));
+    CUDA_CALL(
         cudaMemcpy(d_measurements, measurements.data(), num_measurements * sizeof(float), cudaMemcpyHostToDevice));
 
     dim3 dim_block(32, 32);
@@ -38,21 +37,19 @@ dogm::MeasurementCell* dogm::LaserMeasurementGrid::generateGrid(const std::vecto
     dim3 cart_grid_dim(divUp(grid_size, dim_block.x), divUp(grid_size, dim_block.y));
 
     // convert the measurement information into a polar representation
-
-    // create polar texture
     createPolarGridKernel<<<polar_grid_dim, dim_block>>>(polar_grid, d_measurements, polar_width, polar_height,
                                                           laser_params.resolution);
 
-    CHECK_ERROR(cudaGetLastError());
+    CUDA_CALL(cudaGetLastError());
 
     // // transform polar representation to a cartesian grid
     transformPolarGridToCartesian<<<cart_grid_dim, dim_block>>>( meas_grid, grid_size, grid_resolution,
         polar_grid, polar_width, polar_height, theta_min, laser_params.angle_increment, laser_params.resolution,
         true );
-    CHECK_ERROR(cudaGetLastError());
+    CUDA_CALL(cudaGetLastError());
 
-    CHECK_ERROR(cudaFree(d_measurements));
-    CHECK_ERROR(cudaDeviceSynchronize());
+    CUDA_CALL(cudaFree(d_measurements));
+    CUDA_CALL(cudaDeviceSynchronize());
 
     return meas_grid;
 }

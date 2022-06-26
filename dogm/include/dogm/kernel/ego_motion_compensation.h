@@ -10,7 +10,7 @@
 namespace dogm
 {
 
-__global__ void moveParticlesKernel(ParticlesSoA particle_array, float x_move, float y_move,
+__global__ void moveParticlesKernel(ParticlesSoA particle_array, int x_move, int y_move,
                                     float cos_theta, float sin_theta, int particle_count, float resolution, int grid_size);
 
 __global__ void moveMapKernel(GridCellsSoA grid_cell_array, GridCellsSoA old_grid_cell_array,

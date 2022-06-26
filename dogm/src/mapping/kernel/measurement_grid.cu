@@ -85,7 +85,7 @@ __global__ void createPolarGridKernel(float2* polar_grid, const float* __restric
 
 
 __global__ void transformPolarGridToCartesian(
-    dogm::MeasurementCell* __restrict__ meas_grid, int grid_size, float grid_resolution,
+    dogm::MeasurementCellsSoA meas_grid, int grid_size, float grid_resolution,
     const float2* polar_grid, int polar_width,  int polar_height,
     float theta_min, float theta_inc, float r_inc, bool use_nearest )
 {
@@ -145,16 +145,16 @@ __global__ void transformPolarGridToCartesian(
             float2 m22 = polar_grid[ r2 * polar_width + theta2 ];
 
             auto index = grid_size * y + x;
-            meas_grid[index].occ_mass = m11.x * theta1_prop * r1_prop
+            meas_grid.occ_mass[index] = m11.x * theta1_prop * r1_prop
                    + m12.x * theta1_prop * r2_prop
                    + m21.x * theta2_prop * r1_prop
                    + m22.x * theta2_prop * r2_prop;
-            meas_grid[index].free_mass = m11.y * theta1_prop * r1_prop
+            meas_grid.free_mass[index] = m11.y * theta1_prop * r1_prop
                    + m12.y * theta1_prop * r2_prop
                    + m21.y * theta2_prop * r1_prop
                    + m22.y * theta2_prop * r2_prop;
-            meas_grid[index].likelihood = 1.0f;
-            meas_grid[index].p_A = 1.0f;
+            meas_grid.likelihood[index] = 1.0f;
+            meas_grid.p_A[index] = 1.0f;
         }
     }
 }

@@ -192,6 +192,58 @@ struct GridCellsSoA
         CUDA_CALL(cudaMemcpy(covar_xy_vel, other.covar_xy_vel, size * sizeof(float), kind));
     }
 
+    void move( GridCellsSoA& other )
+    {
+        if( this == &other )
+        {
+            return;
+        }
+        if( device != other.device ) {
+            copy( other, device ? cudaMemcpyDeviceToHost : cudaMemcpyHostToDevice );
+            other.free();
+            return;
+        }
+        free();
+
+        start_idx = other.start_idx;
+        end_idx = other.end_idx;
+        new_born_occ_mass = other.new_born_occ_mass;
+        pers_occ_mass = other.pers_occ_mass;
+        free_mass = other.free_mass;
+        occ_mass = other.occ_mass;
+        pred_occ_mass = other.pred_occ_mass;
+        mu_A = other.mu_A;
+        mu_UA = other.mu_UA;
+
+        w_A = other.w_A;
+        w_UA = other.w_UA;
+
+        mean_x_vel = other.mean_x_vel;
+        mean_y_vel = other.mean_y_vel;
+        var_x_vel = other.var_x_vel;
+        var_y_vel = other.var_y_vel;
+        covar_xy_vel = other.covar_xy_vel;
+
+        other.start_idx = nullptr;
+        other.end_idx = nullptr;
+        other.new_born_occ_mass = nullptr;
+        other.pers_occ_mass = nullptr;
+        other.free_mass = nullptr;
+        other.occ_mass = nullptr;
+        other.pred_occ_mass = nullptr;
+        other.mu_A = nullptr;
+        other.mu_UA = nullptr;
+
+        other.w_A = nullptr;
+        other.w_UA = nullptr;
+
+        other.mean_x_vel = nullptr;
+        other.mean_y_vel = nullptr;
+        other.var_x_vel = nullptr;
+        other.var_y_vel = nullptr;
+        other.covar_xy_vel = nullptr;
+    }
+
     GridCellsSoA& operator=(const GridCellsSoA& other)
     {
         if (this != &other)
