@@ -11,14 +11,10 @@ namespace dogm
 struct MeasurementCell;
 }
 
-__global__ void createPolarGridTextureKernel(cudaSurfaceObject_t polar, const float* __restrict__ measurements,
+__global__ void createPolarGridKernel(float2 *polar_grid, const float* __restrict__ measurements,
                                              int width, int height, float resolution);
 
-__global__ void fusePolarGridTextureKernel(cudaSurfaceObject_t polar, const float* __restrict__ measurements, int width,
-                                           int height, float resolution);
+__global__ void transformPolarGridToCartesian( dogm::MeasurementCellsSoA meas_grid, int grid_size, float grid_resolution,
+                                                const float2* polar_grid, int polar_width,  int polar_height,
+                                                float theta_min, float theta_inc, float r_inc, bool use_nearest = true );
 
-__global__ void cartesianGridToMeasurementGridKernel(dogm::MeasurementCell* __restrict__ meas_grid,
-                                                     cudaSurfaceObject_t cart, int grid_size);
-
-__global__ void gridArrayToMeasurementGridKernel(dogm::MeasurementCell* __restrict__ meas_grid,
-                                                 const float2* __restrict__ grid, int grid_size);
