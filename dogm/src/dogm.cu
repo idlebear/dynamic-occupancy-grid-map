@@ -120,10 +120,10 @@ void DOGM::initialize()
     CUDA_CALL(cudaStreamDestroy(grid_stream));
 }
 
-void DOGM::updateGrid( MeasurementCellsSoA measurement_grid, float new_x, float new_y, float new_yaw, float dt )
+void DOGM::updateGrid( MeasurementCellsSoA measurement_grid, float new_x, float new_y, float dt )
 {
     updateMeasurementGrid(measurement_grid);
-    updatePose(new_x, new_y, new_yaw);
+    updatePose(new_x, new_y);
 
     particlePrediction(dt);
     particleAssignment();
@@ -169,7 +169,7 @@ ParticlesSoA DOGM::getParticles() const
     return particles;
 }
 
-void DOGM::updatePose(float new_x, float new_y, float new_yaw)
+void DOGM::updatePose(float new_x, float new_y)
 {
     if (!first_pose_received)
     {
@@ -181,14 +181,10 @@ void DOGM::updatePose(float new_x, float new_y, float new_yaw)
     {
         const int x_move = std::nearbyint((new_x - position_x) / params.resolution);
         const int y_move = std::nearbyint((new_y - position_y) / params.resolution);
-        const float yaw_diff = new_yaw - yaw;
 
-        if (x_move != 0 || y_move != 0 || fabsf(yaw_diff) > 0.01 )
+        if (x_move != 0 || y_move != 0 )
         {
-            const float cos_theta = cos(yaw_diff);
-            const float sin_theta = sin(yaw_diff);
-
-            moveParticlesKernel<<<particles_grid, block_dim>>>(particle_array, x_move, y_move, cos_theta, sin_theta,
+            moveParticlesKernel<<<particles_grid, block_dim>>>(particle_array, x_move, y_move,
                                                                particle_count, params.resolution, grid_size);
 
             dim3 dim_block(32, 32);
@@ -197,7 +193,7 @@ void DOGM::updatePose(float new_x, float new_y, float new_yaw)
             GridCellsSoA tmp_grid_cell_array(grid_cell_count, true);
 
             moveMapKernel<<<grid_dim, dim_block>>>(tmp_grid_cell_array, grid_cell_array, meas_cell_array, particle_array,
-                                                   x_move, y_move, cos_theta, sin_theta, grid_size);
+                                                   x_move, y_move, grid_size);
 
             grid_cell_array.move( tmp_grid_cell_array );
 
