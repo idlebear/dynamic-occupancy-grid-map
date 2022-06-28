@@ -73,25 +73,24 @@ public:
      * @param measurement_grid new measurement grid map.
      * @param new_x new x pose.
      * @param new_y new y pose.
-     * @param new_yaw new yaw.
      * @param dt delta time since the last update.
      * @param device whether the measurement grid resides in GPU memory (default: true).
      */
-    void updateGrid(MeasurementCell* measurement_grid, float new_x, float new_y, float dt, bool device = true);
+     void updateGrid(MeasurementCellsSoA measurement_grid, float new_x, float new_y, float dt, bool device = true);
 
     /**
      * Returns the grid map in the host memory.
      *
      * @return grid map.
      */
-    std::vector<GridCell> getGridCells() const;
+    GridCellsSoA getGridCells() const;
 
     /**
      * Returns the measurement grid map in the host memory.
      *
      * @return measurement grid map.
      */
-    std::vector<MeasurementCell> getMeasurementCells() const;
+    MeasurementCellsSoA getMeasurementCells() const;
 
     /**
      * Returns the persistent particles of the particle filter.
@@ -134,7 +133,7 @@ private:
     void initialize();
 
     void updatePose(float new_x, float new_y);
-    void updateMeasurementGrid(MeasurementCell* measurement_grid, bool device);
+    void updateMeasurementGrid(MeasurementCellsSoA measurement_grid, bool device);
 
 public:
     void initializeParticles();
@@ -150,11 +149,11 @@ public:
 public:
     Params params;
 
-    GridCell* grid_cell_array;
+    GridCellsSoA grid_cell_array;
     ParticlesSoA particle_array;
     ParticlesSoA particle_array_next;
     ParticlesSoA birth_particle_array;
-    MeasurementCell* meas_cell_array;
+    MeasurementCellsSoA meas_cell_array;
 
     float* weight_array;
     float* birth_weight_array;
