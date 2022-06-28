@@ -98,9 +98,9 @@ __global__ void initParticlesKernel1(ParticlesSoA particle_array,
     }
 }
 
-__global__ void initParticlesKernel2(ParticlesSoA particle_array, const GridCell* __restrict__ grid_cell_array,
-                                     curandState* __restrict__ global_state, float velocity, int grid_size,
-                                     float new_weight, int particle_count)
+__global__ void initParticlesKernel2(ParticlesSoA particle_array, curandState* __restrict__ global_state, 
+                                     float velocity, int grid_size, float new_weight, int particle_count,
+                                     float resolution)
 {
     int thread_id = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = blockDim.x * gridDim.x;
@@ -111,8 +111,8 @@ __global__ void initParticlesKernel2(ParticlesSoA particle_array, const GridCell
     {
         int cell_idx = particle_array.grid_cell_idx[i];
 
-        float x = cell_idx % grid_size + 0.5f;
-        float y = cell_idx / grid_size + 0.5f;
+        float x = (cell_idx % grid_size + 0.5f) * resolution;
+        float y = (cell_idx / grid_size + 0.5f) * resolution;
         float vel_x = curand_uniform(&local_state, -velocity, velocity);
         float vel_y = curand_uniform(&local_state, -velocity, velocity);
 
@@ -160,7 +160,8 @@ __global__ void initNewParticlesKernel1(GridCellsSoA grid_cell_array,
 
 __global__ void initNewParticlesKernel2(ParticlesSoA birth_particle_array, const GridCellsSoA grid_cell_array,
                                         curandState* __restrict__ global_state, float stddev_velocity,
-                                        float max_velocity, int grid_size, int particle_count)
+                                        float max_velocity, int grid_size, int particle_count,
+                                        float resolution)
 {
     int thread_id = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = blockDim.x * gridDim.x;
@@ -172,8 +173,8 @@ __global__ void initNewParticlesKernel2(ParticlesSoA birth_particle_array, const
         int cell_idx = birth_particle_array.grid_cell_idx[i];
         bool associated = birth_particle_array.associated[i];
 
-        float x = cell_idx % grid_size + 0.5f;
-        float y = cell_idx / static_cast<float>(grid_size) + 0.5f;
+        float x = (cell_idx % grid_size + 0.5f) * resolution;
+        float y = (cell_idx / grid_size + 0.5f) * resolution;
 
         if (associated)
         {
