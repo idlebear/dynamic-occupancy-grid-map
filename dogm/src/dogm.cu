@@ -112,10 +112,10 @@ void DOGM::initialize()
     CHECK_ERROR(cudaStreamDestroy(grid_stream));
 }
 
-void DOGM::updateGrid(MeasurementCell* measurement_grid, float new_x, float new_y, float new_yaw, float dt, bool device)
+void DOGM::updateGrid(MeasurementCell* measurement_grid, float new_x, float new_y, float dt, bool device)
 {
     updateMeasurementGrid(measurement_grid, device);
-    updatePose(new_x, new_y, new_yaw);
+    updatePose(new_x, new_y);
 
     particlePrediction(dt);
     particleAssignment();
@@ -160,27 +160,23 @@ ParticlesSoA DOGM::getParticles() const
     return particles;
 }
 
-void DOGM::updatePose(float new_x, float new_y, float new_yaw)
+void DOGM::updatePose(float new_x, float new_y)
 {
     if (!first_pose_received)
     {
         position_x = new_x;
         position_y = new_y;
-        yaw = new_yaw;
         first_pose_received = true;
     }
     else
     {
         const float x_diff = new_x - position_x;
         const float y_diff = new_y - position_y;
-        const float yaw_diff = new_yaw - yaw;
 
-        if (fabsf(x_diff) > params.resolution || fabsf(y_diff) > params.resolution || fabsf(yaw_diff) > params.resolution )
+        if (fabsf(x_diff) > params.resolution || fabsf(y_diff) > params.resolution  )
         {
             const float x_move = x_diff / params.resolution;
             const float y_move = y_diff / params.resolution;
-            const float cos_theta = cos(yaw_diff);
-            const float sin_theta = sin(yaw_diff);
 
             GridCell* new_grid_cell_array;
             CHECK_ERROR(cudaMalloc(&new_grid_cell_array, grid_cell_count * sizeof(GridCell)));
@@ -189,12 +185,11 @@ void DOGM::updatePose(float new_x, float new_y, float new_yaw)
             dim3 dim_block(32, 32);
             dim3 grid_dim(divUp(grid_size, dim_block.x), divUp(grid_size, dim_block.y));
 
-            moveParticlesKernel<<<particles_grid, block_dim>>>(particle_array, x_move, y_move,
-                                                               cos_theta, sin_theta, particle_count);
+            moveParticlesKernel<<<particles_grid, block_dim>>>(particle_array, x_move, y_move, particle_count);
             CHECK_ERROR(cudaGetLastError());
 
             moveMapKernel<<<grid_dim, dim_block>>>(new_grid_cell_array, grid_cell_array, x_move, y_move,
-                                                   cos_theta, sin_theta, grid_size, params.resolution);
+                                                   grid_size, params.resolution);
             CHECK_ERROR(cudaGetLastError());
 
             CHECK_ERROR(cudaFree(grid_cell_array));
@@ -202,7 +197,6 @@ void DOGM::updatePose(float new_x, float new_y, float new_yaw)
 
             position_x = new_x;
             position_y = new_y;
-            yaw = new_yaw;
         }
     }
 }

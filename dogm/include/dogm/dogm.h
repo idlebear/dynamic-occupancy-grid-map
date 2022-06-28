@@ -77,8 +77,7 @@ public:
      * @param dt delta time since the last update.
      * @param device whether the measurement grid resides in GPU memory (default: true).
      */
-    void updateGrid(MeasurementCell* measurement_grid, float new_x, float new_y, float new_yaw, float dt,
-                    bool device = true);
+    void updateGrid(MeasurementCell* measurement_grid, float new_x, float new_y, float dt, bool device = true);
 
     /**
      * Returns the grid map in the host memory.
@@ -123,13 +122,6 @@ public:
     float getPositionX() const { return position_x; }
 
     /**
-     * Returns the vehicles yaw.
-     *
-     * @return yaw.
-     */
-    float getYaw() const { return yaw; }
-
-    /**
      * Returns the y position.
      *
      * @return y position.
@@ -141,7 +133,7 @@ public:
 private:
     void initialize();
 
-    void updatePose(float new_x, float new_y, float new_yaw);
+    void updatePose(float new_x, float new_y);
     void updateMeasurementGrid(MeasurementCell* measurement_grid, bool device);
 
 public:
@@ -197,7 +189,6 @@ private:
     bool first_measurement_received;
     float position_x;
     float position_y;
-    float yaw;
 };
 
 } /* namespace dogm */
