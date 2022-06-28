@@ -22,7 +22,7 @@ dogm::LaserMeasurementGrid::~LaserMeasurementGrid()
     meas_grid.free();
 }
 
-dogm::MeasurementCellsSoA LaserMeasurementGrid::generateGrid(const std::vector<float>& measurements)
+dogm::MeasurementCellsSoA dogm::LaserMeasurementGrid::generateGrid(const std::vector<float>& measurements)
 {
     const int num_measurements = measurements.size();
 

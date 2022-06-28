@@ -170,7 +170,6 @@ __global__ void initNewParticlesKernel2(ParticlesSoA birth_particle_array, const
     for (int i = thread_id; i < particle_count; i += stride)
     {
         int cell_idx = birth_particle_array.grid_cell_idx[i];
-        const GridCell& grid_cell = grid_cell_array[cell_idx];
         bool associated = birth_particle_array.associated[i];
 
         float x = cell_idx % grid_size + 0.5f;

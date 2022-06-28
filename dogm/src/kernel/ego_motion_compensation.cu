@@ -38,7 +38,7 @@ __global__ void moveMapKernel(GridCellsSoA grid_cell_array, GridCellsSoA old_gri
         {
             int index = x + grid_size * y;
             int old_index = old_x + grid_size * old_y;
-            grid_cell_array[index] = old_grid_cell_array[old_index];
+            grid_cell_array.copy(old_grid_cell_array, index, old_index);
         }
     }
 }
