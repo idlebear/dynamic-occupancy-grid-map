@@ -14,6 +14,7 @@
 #include <memory>
 
 #include <vector>
+#include <opencv2/opencv.hpp>
 
 namespace dogm
 {
@@ -136,6 +137,10 @@ public:
 
     int getIteration() const { return iteration; }
 
+    cv::Mat getPredOccMassImage(GridCellsSoA& grid_cells) const;
+    cv::Mat getNewBornOccMassImage(GridCellsSoA& grid_cells) const;
+    cv::Mat getPersOccMassImage(GridCellsSoA& grid_cells) const;
+    cv::Mat getOccupancyImage(GridCellsSoA& grid_cells) const;
 private:
     void initialize();
 

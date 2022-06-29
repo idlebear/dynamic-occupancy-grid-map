@@ -1,11 +1,12 @@
 cmake_minimum_required(VERSION 3.9)
-project(DOGM LANGUAGES CXX CUDA)
+project(dogm LANGUAGES CXX CUDA)
 
 set(CMAKE_CXX_STANDARD 14)
 set(OpenGL_GL_PREFERENCE "GLVND")
 set( CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "--shared --compiler-options '-fPIC'" )
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-option(BUILD_TESTS "Build unit tests" ON)
+option(BUILD_TESTS "Build unit tests" OFF)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")
 find_package(OpenGL REQUIRED)
@@ -29,20 +30,11 @@ if (NOT GLEW_FOUND)
 	set(GLEW_LIBRARIES "" CACHE FILEPATH "" )
 endif()
 
-SET( EIGEN3_INCLUDE_DIR "$ENV{EIGEN3_INCLUDE_DIR}" )
-IF( NOT EIGEN3_INCLUDE_DIR )
-	SET( EIGEN3_INCLUDE_DIR "/usr/local/include/eigen3")
-	# MESSAGE( FATAL_ERROR "Please point the environment variable EIGEN3_INCLUDE_DIR to the include directory of your Eigen3 installation.")
-ENDIF()
-INCLUDE_DIRECTORIES ( "${EIGEN3_INCLUDE_DIR}" )
+find_package(OpenCV REQUIRED)
+find_package(Eigen3 REQUIRED)
 
 LIST (APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 INCLUDE(GoogleTestDownloadAndBuild)
-
-#if(WIN32)
-#    install(FILES "${OpenCV_DIR}/${OpenCV_ARCH}/${OpenCV_RUNTIME}/bin/opencv_world${OpenCV_VERSION_MAJOR}${OpenCV_VERSION_MINOR}${OpenCV_VERSION_PATCH}d.dll" DESTINATION ${CMAKE_INSTALL_BINARY}/debug CONFIGURATIONS Debug)
-#    install(FILES "${OpenCV_DIR}/${OpenCV_ARCH}/${OpenCV_RUNTIME}/bin/opencv_world${OpenCV_VERSION_MAJOR}${OpenCV_VERSION_MINOR}${OpenCV_VERSION_PATCH}.dll" DESTINATION ${CMAKE_INSTALL_BINARY} CONFIGURATIONS RelWithDebInfo Release)
-#endif(WIN32)
 
 include_directories(
 	SYSTEM
@@ -50,6 +42,8 @@ include_directories(
 	${GLFW3_INCLUDE_DIR}
 	${GLEW_INCLUDE_DIRS}
 	${GLM_INCLUDE_DIR}
+	${OpenCV_INCLUDE_DIRS}
+	${EIGEN3_INCLUDE_DIR}
 )
 
 set(HEADER_FILES
@@ -113,12 +107,13 @@ string(APPEND CMAKE_CUDA_FLAGS " --expt-extended-lambda")
 #set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --expt-extended-lambda -Xcudafe --diag_suppress=esa_on_defaulted_function_ignored")
 set(CUDA_PROPAGATE_HOST_FLAGS ON)
 
-set_target_properties(dogm PROPERTIES PUBLIC_HEADER "include/dogm.h;include/dogm_types.h")
+set_target_properties(dogm PROPERTIES PUBLIC_HEADER "include/dogm/dogm.h;include/dogm/dogm_types.h")
 
 target_link_libraries(dogm
-	PRIVATE ${OPENGL_LIBRARY}
-	PRIVATE ${GLFW3_LIBRARY}
-	PRIVATE ${GLEW_LIBRARIES}
+	${OPENGL_LIBRARY}
+	${GLFW3_LIBRARY}
+	${GLEW_LIBRARIES}
+	${OpenCV_LIBS}
 )
 
 #INSTALL(TARGETS dogm
@@ -133,3 +128,31 @@ if(BUILD_TESTS)
 endif()
 
 add_subdirectory(demo)
+
+# Install package.xml for catkin
+install(FILES package.xml DESTINATION share/${PROJECT_NAME}/)
+
+set(CONF_INCLUDE_DIRS "${CMAKE_INSTALL_PREFIX}/include")
+set(DOGM_CMAKE_DIR share/${PROJECT_NAME}/cmake)
+include(CMakePackageConfigHelpers)
+configure_package_config_file(
+	dogm-config.cmake.in
+	${PROJECT_BINARY_DIR}/cmake/${PROJECT_NAME}/dogm-config.cmake
+	PATH_VARS DOGM_CMAKE_DIR
+	INSTALL_DESTINATION ${CMAKE_INSTALL_PREFIX}/share/${PROJECT_NAME}
+)
+
+install(
+	FILES ${PROJECT_BINARY_DIR}/cmake/${PROJECT_NAME}/dogm-config.cmake
+	DESTINATION share/${PROJECT_NAME}/
+)
+
+install(TARGETS dogm
+	ARCHIVE DESTINATION lib
+	LIBRARY DESTINATION lib
+)
+
+install(
+	DIRECTORY include/
+	DESTINATION include/
+)
