@@ -69,6 +69,8 @@ struct GridCellsSoA
     float* var_y_vel;
     float* covar_xy_vel;
 
+    void *blk_ptr;
+
     int size;
     bool device;
 
@@ -80,117 +82,83 @@ struct GridCellsSoA
     {
         size = new_size;
         device = is_device;
-        if (device)
-        {
-            CUDA_CALL(cudaMalloc((void**)&start_idx, size * sizeof(int)));
-            CUDA_CALL(cudaMalloc((void**)&end_idx, size * sizeof(int)));
-            CUDA_CALL(cudaMalloc((void**)&new_born_occ_mass, size * sizeof(float)));
-            CUDA_CALL(cudaMalloc((void**)&pers_occ_mass, size * sizeof(float)));
-            CUDA_CALL(cudaMalloc((void**)&free_mass, size * sizeof(float)));
-            CUDA_CALL(cudaMalloc((void**)&occ_mass, size * sizeof(float)));
-            CUDA_CALL(cudaMalloc((void**)&pred_occ_mass, size * sizeof(float)));
-            CUDA_CALL(cudaMalloc((void**)&mu_A, size * sizeof(float)));
-            CUDA_CALL(cudaMalloc((void**)&mu_UA, size * sizeof(float)));
+        auto bytes = size * sizeof(GridCell);
 
-            CUDA_CALL(cudaMalloc((void**)&w_A, size * sizeof(float)));
-            CUDA_CALL(cudaMalloc((void**)&w_UA, size * sizeof(float)));
-
-            CUDA_CALL(cudaMalloc((void**)&mean_x_vel, size * sizeof(float)));
-            CUDA_CALL(cudaMalloc((void**)&mean_y_vel, size * sizeof(float)));
-            CUDA_CALL(cudaMalloc((void**)&var_x_vel, size * sizeof(float)));
-            CUDA_CALL(cudaMalloc((void**)&var_y_vel, size * sizeof(float)));
-            CUDA_CALL(cudaMalloc((void**)&covar_xy_vel, size * sizeof(float)));
+        if (device) {
+            CUDA_CALL(cudaMalloc((void **) &blk_ptr, bytes));
+        } else {
+            blk_ptr = malloc(bytes);
         }
-        else
-        {
-            start_idx = (int*)malloc(size * sizeof(int));
-            end_idx = (int*)malloc(size * sizeof(int));
-            new_born_occ_mass = (float*)malloc(size * sizeof(float));
-            pers_occ_mass = (float*)malloc(size * sizeof(float));
-            free_mass = (float*)malloc(size * sizeof(float));
-            occ_mass = (float*)malloc(size * sizeof(float));
-            pred_occ_mass = (float*)malloc(size * sizeof(float));
-            mu_A = (float*)malloc(size * sizeof(float));
-            mu_UA = (float*)malloc(size * sizeof(float));
 
-            w_A = (float*)malloc(size * sizeof(float));
-            w_UA = (float*)malloc(size * sizeof(float));
+        __initialize_ptrs();
+    }
 
-            mean_x_vel = (float*)malloc(size * sizeof(float));
-            mean_y_vel = (float*)malloc(size * sizeof(float));
-            var_x_vel = (float*)malloc(size * sizeof(float));
-            var_y_vel = (float*)malloc(size * sizeof(float));
-            covar_xy_vel = (float*)malloc(size * sizeof(float));
-        }
+    void __initialize_ptrs()
+    {
+        start_idx = reinterpret_cast<int *>(blk_ptr);
+        end_idx = reinterpret_cast<int *>(start_idx + size);
+        new_born_occ_mass = reinterpret_cast<float *>(end_idx + size);
+        pers_occ_mass = reinterpret_cast<float *>(new_born_occ_mass + size);
+        free_mass = reinterpret_cast<float *>(pers_occ_mass + size);
+        occ_mass = reinterpret_cast<float *>(free_mass + size);
+        pred_occ_mass = reinterpret_cast<float *>(occ_mass + size);
+        mu_A = reinterpret_cast<float *>(pred_occ_mass + size);
+        mu_UA = reinterpret_cast<float *>(mu_A + size);
+
+        w_A = reinterpret_cast<float *>(mu_UA + size);
+        w_UA = reinterpret_cast<float *>(w_A + size);
+
+        mean_x_vel = reinterpret_cast<float *>(w_UA + size);
+        mean_y_vel = reinterpret_cast<float *>(mean_x_vel + size);
+        var_x_vel = reinterpret_cast<float *>(mean_y_vel + size);
+        var_y_vel = reinterpret_cast<float *>(var_x_vel + size);
+        covar_xy_vel = reinterpret_cast<float *>(var_y_vel + size);
     }
 
     void free()
     {
+        assert(size);
         if (device)
         {
-            CUDA_CALL(cudaFree(start_idx));
-            CUDA_CALL(cudaFree(end_idx));
-            CUDA_CALL(cudaFree(new_born_occ_mass));
-            CUDA_CALL(cudaFree(pers_occ_mass));
-            CUDA_CALL(cudaFree(free_mass));
-            CUDA_CALL(cudaFree(occ_mass));
-            CUDA_CALL(cudaFree(pred_occ_mass));
-            CUDA_CALL(cudaFree(mu_A));
-            CUDA_CALL(cudaFree(mu_UA));
-
-            CUDA_CALL(cudaFree(w_A));
-            CUDA_CALL(cudaFree(w_UA));
-
-            CUDA_CALL(cudaFree(mean_x_vel));
-            CUDA_CALL(cudaFree(mean_y_vel));
-            CUDA_CALL(cudaFree(var_x_vel));
-            CUDA_CALL(cudaFree(var_y_vel));
-            CUDA_CALL(cudaFree(covar_xy_vel));
+            CUDA_CALL(cudaFree(blk_ptr));
         }
         else
         {
-            ::free(start_idx);
-            ::free(end_idx);
-            ::free(new_born_occ_mass);
-            ::free(pers_occ_mass);
-            ::free(free_mass);
-            ::free(occ_mass);
-            ::free(pred_occ_mass);
-            ::free(mu_A);
-            ::free(mu_UA);
-
-            ::free(w_A);
-            ::free(w_UA);
-
-            ::free(mean_x_vel);
-            ::free(mean_y_vel);
-            ::free(var_x_vel);
-            ::free(var_y_vel);
-            ::free(covar_xy_vel);
+            ::free(blk_ptr);
         }
+        blk_ptr = nullptr;
+        size = 0;
+        __initialize_ptrs();
     }
 
     void copy(const GridCellsSoA& other, cudaMemcpyKind kind)
     {
-        CUDA_CALL(cudaMemcpy(start_idx, other.start_idx, size * sizeof(int), kind));
-        CUDA_CALL(cudaMemcpy(end_idx, other.end_idx, size * sizeof(int), kind));
-        CUDA_CALL(cudaMemcpy(new_born_occ_mass, other.new_born_occ_mass, size * sizeof(float), kind));
-        CUDA_CALL(cudaMemcpy(pers_occ_mass, other.pers_occ_mass, size * sizeof(float), kind));
-        CUDA_CALL(cudaMemcpy(free_mass, other.free_mass, size * sizeof(float), kind));
-        CUDA_CALL(cudaMemcpy(occ_mass, other.occ_mass, size * sizeof(float), kind));
-        CUDA_CALL(cudaMemcpy(pred_occ_mass, other.pred_occ_mass, size * sizeof(float), kind));
-        CUDA_CALL(cudaMemcpy(mu_A, other.mu_A, size * sizeof(float), kind));
-        CUDA_CALL(cudaMemcpy(mu_UA, other.mu_UA, size * sizeof(float), kind));
-
-        CUDA_CALL(cudaMemcpy(w_A, other.w_A, size * sizeof(float), kind));
-        CUDA_CALL(cudaMemcpy(w_UA, other.w_UA, size * sizeof(float), kind));
-
-        CUDA_CALL(cudaMemcpy(mean_x_vel, other.mean_x_vel, size * sizeof(float), kind));
-        CUDA_CALL(cudaMemcpy(mean_y_vel, other.mean_y_vel, size * sizeof(float), kind));
-        CUDA_CALL(cudaMemcpy(var_x_vel, other.var_x_vel, size * sizeof(float), kind));
-        CUDA_CALL(cudaMemcpy(var_y_vel, other.var_y_vel, size * sizeof(float), kind));
-        CUDA_CALL(cudaMemcpy(covar_xy_vel, other.covar_xy_vel, size * sizeof(float), kind));
+        assert(size && size == other.size);
+        auto bytes = size * sizeof(GridCell);
+        CUDA_CALL(cudaMemcpy(blk_ptr, other.blk_ptr, bytes, kind));
+        __initialize_ptrs();
     }
+
+    void move( GridCellsSoA& other )
+    {
+        if( this == &other )
+        {
+            return;
+        }
+        if( device != other.device ) {
+            copy( other, device ? cudaMemcpyDeviceToHost : cudaMemcpyHostToDevice );
+            other.free();
+            return;
+        }
+        free();
+
+        blk_ptr = other.blk_ptr;
+        __initialize_ptrs();
+
+        other.blk_ptr = nullptr;
+        other.__initialize_ptrs();
+    }
+
 
     GridCellsSoA& operator=(const GridCellsSoA& other)
     {
