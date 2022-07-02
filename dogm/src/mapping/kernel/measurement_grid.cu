@@ -32,16 +32,15 @@ __device__ auto pFree(int i, float p_min, float p_max, int max_range) -> float
     return p_min + i * (p_max - p_min) / max_range;
 }
 
-__device__ auto pOcc(int r, float zk, int index, float resolution) -> float
+__device__ auto pOcc(int r, float zk, int index, float resolution, float sigma) -> float
 {
     auto occ_max = 0.95f;
-    auto delta = 1.0f; // 0.6f / resolution;
-    auto diff = float(index - r);
+    auto diff = float(index - r) * resolution;
 
-    return occ_max * exp(-0.5f * diff * diff / (delta * delta));
+    return occ_max * exp(-0.5f * diff * diff / (sigma*sigma));
 }
 
-__device__ auto inverse_sensor_model(int i, float resolution, float zk, float r_max) -> float2
+__device__ auto inverse_sensor_model(int i, float resolution, float zk, float r_max, float sigma) -> float2
 {
     // Masses: mOcc, mFree
 
@@ -51,7 +50,7 @@ __device__ auto inverse_sensor_model(int i, float resolution, float zk, float r_
     if (isfinite(zk))
     {
         const int r = static_cast<int>(zk / resolution);
-        const float occ = pOcc(r, zk, i, resolution);
+        const float occ = pOcc(r, zk, i, resolution, sigma);
 
         if (i <= r) {
              res = occ > free ? make_float2(occ, 0.0f) : make_float2(0.0f, 1.0f - free);
@@ -66,7 +65,7 @@ __device__ auto inverse_sensor_model(int i, float resolution, float zk, float r_
 }
 
 __global__ void createPolarGridKernel(float2* polar_grid, const float* __restrict__ measurements,
-    int width, int height, float resolution)
+    int width, int height, float resolution, float sigma)
 {
     const unsigned int theta = blockIdx.x * blockDim.x + threadIdx.x;
     const unsigned int range = blockIdx.y * blockDim.y + threadIdx.y;
@@ -76,7 +75,7 @@ __global__ void createPolarGridKernel(float2* polar_grid, const float* __restric
         const float epsilon = 0.00001f;
         const float zk = measurements[theta];
 
-        float2 masses = inverse_sensor_model(range, resolution, zk, height);
+        float2 masses = inverse_sensor_model(range, resolution, zk, height, sigma);
         masses.x = max(epsilon, min(1.0f - epsilon, masses.x));
         masses.y = max(epsilon, min(1.0f - epsilon, masses.y));
         polar_grid[range * width + theta] = masses;
