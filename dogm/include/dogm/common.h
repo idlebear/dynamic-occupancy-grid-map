@@ -22,6 +22,24 @@ inline void accumulate(thrust::device_vector<T>& arr, thrust::device_vector<T>& 
 }
 
 template <typename T>
+struct _normalize_fn {
+    T max_val;
+    _normalize_fn( T val ) {
+        max_val = val;
+    }
+    __device__ __host__ T operator()(const T v) const { return v / max_val; }
+};
+
+template <typename T>
+void normalize(T* arr, int num_elements)
+{
+    thrust::device_ptr<T> ptr(arr);
+    auto max_val = thrust::reduce( ptr, ptr+num_elements);
+    thrust::transform(ptr, ptr + num_elements, ptr, _normalize_fn<T>(max_val));
+}
+
+
+template <typename T>
 inline __device__ __host__ T subtract(T* accum_array, int start_idx, int end_idx)
 {
     if (start_idx == 0)
