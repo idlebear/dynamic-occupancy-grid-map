@@ -179,8 +179,8 @@ void DOGM::updatePose(float new_x, float new_y)
     }
     else
     {
-        const int x_move = std::nearbyint((new_x - position_x) / params.resolution);
-        const int y_move = std::nearbyint((new_y - position_y) / params.resolution);
+        const float x_move = new_x - position_x;
+        const float y_move = new_y - position_y;
 
         if (x_move != 0 || y_move != 0 )
         {
@@ -193,7 +193,7 @@ void DOGM::updatePose(float new_x, float new_y)
             GridCellsSoA tmp_grid_cell_array(grid_cell_count, true);
 
             moveMapKernel<<<grid_dim, dim_block>>>(tmp_grid_cell_array, grid_cell_array, meas_cell_array, particle_array,
-                                                   x_move, y_move, grid_size);
+                                                   std::nearbyint(x_move / params.resolution ), std::nearbyint(y_move / params.resolution ), grid_size);
 
             grid_cell_array.move( tmp_grid_cell_array );
 

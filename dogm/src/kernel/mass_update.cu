@@ -20,22 +20,22 @@ __device__ float predict_free_mass(float grid_cell_free_mass, float m_occ_pred, 
 
 __device__ float2 update_masses(float m_occ_pred, float m_free_pred, const MeasurementCellsSoA meas_cells, int meas_idx)
 {
-    float unknown_pred = 1.0 - m_occ_pred - m_free_pred;
-    float meas_unknown = 1.0 - meas_cells.free_mass[meas_idx] - meas_cells.occ_mass[meas_idx];
+    float unknown_pred = float(1.0) - m_occ_pred - m_free_pred;
+    float meas_unknown = float(1.0) - meas_cells.free_mass[meas_idx] - meas_cells.occ_mass[meas_idx];
     float K = m_free_pred * meas_cells.occ_mass[meas_idx] + m_occ_pred * meas_cells.free_mass[meas_idx];
 
     float occ_mass =
-        (m_occ_pred * meas_unknown + unknown_pred * meas_cells.occ_mass[meas_idx] + m_occ_pred * meas_cells.occ_mass[meas_idx]) / (1.0 - K);
+        (m_occ_pred * meas_unknown + unknown_pred * meas_cells.occ_mass[meas_idx] + m_occ_pred * meas_cells.occ_mass[meas_idx]) / float(1.0 - K);
     float free_mass =
         (m_free_pred * meas_unknown + unknown_pred * meas_cells.free_mass[meas_idx] + m_free_pred * meas_cells.free_mass[meas_idx]) /
-        (1.0 - K);
+        float(1.0 - K);
 
     return make_float2(occ_mass, free_mass);
 }
 
 __device__ float separate_newborn_part(float m_occ_pred, float m_occ_up, float p_B)
 {
-    return (m_occ_up * p_B * (1.0 - m_occ_pred)) / (m_occ_pred + p_B * (1.0 - m_occ_pred));
+    return (m_occ_up * p_B * float(1.0 - m_occ_pred)) / (m_occ_pred + p_B * float(1.0 - m_occ_pred));
 }
 
 __device__ void store_values(float rho_b, float rho_p, float m_free_up, float m_occ_up, float m_occ_pred,
