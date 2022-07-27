@@ -140,6 +140,7 @@ public:
     cv::Mat getNewBornOccMassImage(GridCellsSoA& grid_cells) const;
     cv::Mat getPersOccMassImage(GridCellsSoA& grid_cells) const;
     cv::Mat getOccupancyImage(GridCellsSoA& grid_cells) const;
+    cv::Mat getParticleCountImage(GridCellsSoA& grid_cells) const;
 private:
     void initialize();
 

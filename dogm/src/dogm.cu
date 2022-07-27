@@ -441,7 +441,7 @@ cv::Mat DOGM::getPredOccMassImage(GridCellsSoA& grid_cells) const
         cv::Vec3b color;
         int x = i % grid_size;
         int y = i / grid_size;
-        color[0] = color[1] = color[2] = uchar(grid_cells.pred_occ_mass[i] * 255);
+        color[0] = color[1] = color[2] = uchar((1-grid_cells.pred_occ_mass[i]) * 255);
         image.at<cv::Vec3b>(grid_size - x - 1, grid_size - y - 1) = color;
     }
     return image;
@@ -455,7 +455,7 @@ cv::Mat DOGM::getNewBornOccMassImage(GridCellsSoA& grid_cells) const
         cv::Vec3b color;
         int x = i % grid_size;
         int y = i / grid_size;
-        color[0] = color[1] = color[2] = uchar(grid_cells.new_born_occ_mass[i] * 255);
+        color[0] = color[1] = color[2] = uchar((1-grid_cells.new_born_occ_mass[i]) * 255);
         image.at<cv::Vec3b>(grid_size - x - 1, grid_size - y - 1) = color;
     }
     return image;
@@ -469,7 +469,7 @@ cv::Mat DOGM::getPersOccMassImage(GridCellsSoA& grid_cells) const
         cv::Vec3b color;
         int x = i % grid_size;
         int y = i / grid_size;
-        color[0] = color[1] = color[2] = uchar(grid_cells.pers_occ_mass[i] * 255);
+        color[0] = color[1] = color[2] = uchar((1-grid_cells.pers_occ_mass[i]) * 255);
         image.at<cv::Vec3b>(grid_size - x - 1, grid_size - y - 1) = color;
     }
     return image;
@@ -485,7 +485,30 @@ cv::Mat DOGM::getOccupancyImage(GridCellsSoA& grid_cells) const
         cv::Vec3b color;
         int x = i % grid_size;
         int y = i / grid_size;
-        color[0] = color[1] = color[2] = uchar((occ_mass + (1 - occ_mass - free_mass) / 2) * 255);
+        color[0] = color[1] = color[2] = uchar((1-(occ_mass + (1 - occ_mass - free_mass) / 2)) * 255);
+        image.at<cv::Vec3b>(grid_size - x - 1, grid_size - y - 1) = color;
+    }
+    return image;
+}
+
+
+cv::Mat DOGM::getParticleCountImage(GridCellsSoA& grid_cells) const
+{
+    cv::Mat image(grid_size, grid_size, CV_8UC3);
+    auto max_particles = 0;
+    for (int i = 0; i < grid_cell_count; i++) {
+        const auto count = grid_cells.end_idx[i] - grid_cells.start_idx[i];
+        if (count > max_particles) {
+            max_particles = count;
+        }
+    }
+
+    for (int i = 0; i < grid_cell_count; i++)
+    {
+        cv::Vec3b color;
+        int x = i % grid_size;
+        int y = i / grid_size;
+        color[0] = color[1] = color[2] = uchar((1.0 - float(grid_cells.end_idx[i] - grid_cells.start_idx[i])/float(max_particles)) * 255);
         image.at<cv::Vec3b>(grid_size - x - 1, grid_size - y - 1) = color;
     }
     return image;
