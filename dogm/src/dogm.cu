@@ -366,7 +366,7 @@ void DOGM::resampling()
 
     thrust::device_ptr<float> rand_ptr(rand_array);
     thrust::device_vector<float> rand_vector(rand_ptr, rand_ptr + particle_count);
-    thrust::sort(rand_vector.begin(), rand_vector.end());
+    // thrust::sort(rand_vector.begin(), rand_vector.end());
     thrust::device_vector<int> idx_resampled(particle_count);
     calc_resampled_indices(joint_weight_accum, rand_vector, idx_resampled, joint_max);
     int* idx_array_resampled = thrust::raw_pointer_cast(idx_resampled.data());
