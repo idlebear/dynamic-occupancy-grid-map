@@ -156,7 +156,7 @@ void DOGM::freeGridCells( GridCellsSoA grid_cells ) const
 MeasurementCellsSoA DOGM::getMeasurementCells() const
 {
     MeasurementCellsSoA meas_cells(grid_cell_count, false);
-    meas_cells.copy(meas_cell_array, cudaMemcpyDeviceToHost);
+    meas_cells.copy(meas_cell_array);
 
     return meas_cells;
 }
@@ -205,8 +205,7 @@ void DOGM::updatePose(float new_x, float new_y)
 
 void DOGM::updateMeasurementGrid(MeasurementCellsSoA measurement_grid)
 {
-    cudaMemcpyKind kind = measurement_grid.device ? cudaMemcpyDeviceToDevice : cudaMemcpyHostToDevice;
-    meas_cell_array.copy(measurement_grid, kind);
+    meas_cell_array.copy(measurement_grid);
 
     if (!first_measurement_received)
     {
@@ -235,7 +234,7 @@ void DOGM::initializeParticles()
     initParticlesKernel2<<<particles_grid, block_dim>>>(
         particle_array, rng_states, params.init_max_velocity, grid_size, new_weight, particle_count,
         params.resolution);
-}
+ }
 
 void DOGM::particlePrediction(float dt)
 {

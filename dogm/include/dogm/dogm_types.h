@@ -329,8 +329,17 @@ struct MeasurementCellsSoA
         }
     }
 
-    void copy(const MeasurementCellsSoA& other, cudaMemcpyKind kind)
+    void copy(const MeasurementCellsSoA& other)
     {
+        auto kind = cudaMemcpyDeviceToDevice;
+        if( device != other.device ) {
+            if( device ) {
+                kind = cudaMemcpyHostToDevice;
+            } else {
+                kind = cudaMemcpyDeviceToHost;
+            }
+        }
+
         CUDA_CALL(cudaMemcpy(free_mass, other.free_mass, size * sizeof(float), kind));
         CUDA_CALL(cudaMemcpy(occ_mass, other.occ_mass, size * sizeof(float), kind));
         CUDA_CALL(cudaMemcpy(likelihood, other.likelihood, size * sizeof(float), kind));
@@ -341,7 +350,7 @@ struct MeasurementCellsSoA
     {
         if (this != &other)
         {
-            copy(other, cudaMemcpyDeviceToDevice);
+            copy(other);
         }
 
         return *this;
