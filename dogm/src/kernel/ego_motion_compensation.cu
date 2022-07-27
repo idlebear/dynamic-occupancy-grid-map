@@ -13,16 +13,16 @@
 namespace dogm
 {
 
-__global__ void moveParticlesKernel(ParticlesSoA particle_array, int x_move, int y_move,
+__global__ void moveParticlesKernel(ParticlesSoA particle_array, float x_move, float y_move,
                                     int particle_count, float resolution, int grid_size)
 {
     for (int i = blockIdx.x * blockDim.x + threadIdx.x; i < particle_count; i += blockDim.x * gridDim.x)
     {
-        particle_array.state[i][0] -= (x_move * resolution);
-        particle_array.state[i][1] -= (y_move * resolution);
+        particle_array.state[i][0] -= x_move;
+        particle_array.state[i][1] -= y_move;
 
-        particle_array.grid_cell_idx[i] = static_cast<int>(particle_array.state[i][1] / resolution) * grid_size
-        + static_cast<int>(particle_array.state[i][0] / resolution);
+        particle_array.grid_cell_idx[i] = std::nearbyint(particle_array.state[i][1] / resolution) * grid_size
+            + std::nearbyint(particle_array.state[i][0] / resolution);
     }
 }
 
@@ -31,7 +31,7 @@ __global__ void moveParticlesKernel(ParticlesSoA particle_array, int x_move, int
 
 __global__ void moveMapKernel(GridCellsSoA grid_cell_array, GridCellsSoA old_grid_cell_array,
                               MeasurementCellsSoA meas_cell_array, ParticlesSoA particle_array,
-                              int x_move, int y_move, int grid_size)
+                              int x_grid_move, int y_grid_move, int grid_size)
 {
     const int x = blockIdx.x * blockDim.x + threadIdx.x;
     const int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -39,12 +39,12 @@ __global__ void moveMapKernel(GridCellsSoA grid_cell_array, GridCellsSoA old_gri
 
     if (x < grid_size && y < grid_size)
     {
-        auto old_x = x + x_move;
-        auto old_y = y + y_move;
+        auto old_x = x + x_grid_move;
+        auto old_y = y + y_grid_move;
         int old_index = old_x + grid_size * old_y;
         int new_index = x + grid_size * y;
 
-        if (old_x >= 0 && old_x < grid_size && old_y >= 0 && old_y < grid_size && meas_cell_array.occ_mass[old_index] > eps)
+        if (old_x >= 0 && old_x < grid_size && old_y >= 0 && old_y < grid_size )
         {
             grid_cell_array.copy(old_grid_cell_array, new_index, old_index);
         }
