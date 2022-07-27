@@ -39,7 +39,7 @@ dogm::MeasurementCellsSoA dogm::LaserMeasurementGrid::generateGrid(const std::ve
 
     // convert the measurement information into a polar representation
     createPolarGridKernel<<<polar_grid_dim, dim_block>>>(polar_grid, d_measurements, polar_width, polar_height,
-                                                          laser_params.resolution, laser_params.sigma);
+                                                          laser_params.resolution, laser_params.stddev_range);
 
     CUDA_CALL(cudaGetLastError());
 
