@@ -12,7 +12,7 @@ struct MeasurementCell;
 }
 
 __global__ void createPolarGridKernel(float2 *polar_grid, const float* __restrict__ measurements,
-                                             int width, int height, float resolution);
+                                             int width, int height, float resolution, float stddev_range);
 
 __global__ void transformPolarGridToCartesian( dogm::MeasurementCellsSoA meas_grid, int grid_size, float grid_resolution,
                                                 const float2* polar_grid, int polar_width,  int polar_height,
