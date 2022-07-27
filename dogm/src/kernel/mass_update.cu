@@ -73,11 +73,11 @@ __global__ void gridCellPredictionUpdateKernel(GridCellsSoA grid_cell_array, Par
         {
             float m_occ_pred = subtract(weight_array_accum, start_idx, end_idx);
 
-            if (m_occ_pred > 1.0f)
-            {
-                normalize_weights(particle_array, weight_array, start_idx, end_idx, m_occ_pred);
-                m_occ_pred = 1.0f;
-            }
+//            if (m_occ_pred > 1.0f)
+//            {
+//                normalize_weights(particle_array, weight_array, start_idx, end_idx, m_occ_pred);
+//                m_occ_pred = 1.0f;
+//            }
 
             float m_free_pred = predict_free_mass(grid_cell_array.free_mass[i], m_occ_pred);
             float2 masses_up = update_masses(m_occ_pred, m_free_pred, meas_cell_array, i);

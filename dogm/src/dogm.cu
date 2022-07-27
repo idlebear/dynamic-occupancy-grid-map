@@ -255,6 +255,9 @@ void DOGM::particleAssignment()
 {
     reinitGridParticleIndices<<<grid_map_grid, block_dim>>>(grid_cell_array, grid_cell_count);
 
+    // normalize the particle weights
+    normalize<float>( particle_array.weight, particle_count );
+
     // sort particles
     thrust::device_ptr<int> grid_index_ptr(particle_array.grid_cell_idx);
     thrust::device_ptr<float> weight_ptr(particle_array.weight);
