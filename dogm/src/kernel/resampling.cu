@@ -34,13 +34,13 @@ __global__ void resamplingGenerateRandomNumbersKernel(float* __restrict__ rand_a
 void calc_resampled_indices(thrust::device_vector<float>& joint_weight_accum, thrust::device_vector<float>& rand_array,
                             thrust::device_vector<int>& indices, float accum_max)
 {
-    float rand_max = rand_array.back();
-
-    if (accum_max != rand_max)
-    {
-        joint_weight_accum.back() = rand_max;
-    }
-
+//    float rand_max = rand_array.back();
+//
+//    if (accum_max != rand_max)
+//    {
+//        joint_weight_accum.back() = rand_max;
+//    }
+//
     // multinomial sampling
     thrust::lower_bound(joint_weight_accum.begin(), joint_weight_accum.end(), rand_array.begin(), rand_array.end(),
                         indices.begin());

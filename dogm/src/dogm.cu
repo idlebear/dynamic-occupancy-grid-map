@@ -369,7 +369,14 @@ void DOGM::resampling()
 
     thrust::device_ptr<float> rand_ptr(rand_array);
     thrust::device_vector<float> rand_vector(rand_ptr, rand_ptr + particle_count);
+    // Not sure this step is required as the calc_resampled_indices() function uses thrust::lower_bound to find the
+    // indices where the rand values land in the increasing/accumulated weights of both old and new particle lists -- and
+    // since rand_max must be less than joint_max (it's part of the parameters to the rand gen function), every
+    // value already has a location.  Besides, (re)setting that end value is expensive... not to mention the sort cost
+    // If the max rand is required, a simple linear search is a far better choice.
+    //
     // thrust::sort(rand_vector.begin(), rand_vector.end());
+    //
     thrust::device_vector<int> idx_resampled(particle_count);
     calc_resampled_indices(joint_weight_accum, rand_vector, idx_resampled, joint_max);
     int* idx_array_resampled = thrust::raw_pointer_cast(idx_resampled.data());
