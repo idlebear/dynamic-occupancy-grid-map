@@ -69,32 +69,18 @@ __global__ void gridCellPredictionUpdateKernel(GridCellsSoA grid_cell_array, Par
         int start_idx = grid_cell_array.start_idx[i];
         int end_idx = grid_cell_array.end_idx[i];
 
-        if (start_idx != -1)
-        {
-            float m_occ_pred = subtract(weight_array_accum, start_idx, end_idx);
-
-//            if (m_occ_pred > 1.0f)
-//            {
-//                normalize_weights(particle_array, weight_array, start_idx, end_idx, m_occ_pred);
-//                m_occ_pred = 1.0f;
-//            }
-
-            float m_free_pred = predict_free_mass(grid_cell_array.free_mass[i], m_occ_pred);
-            float2 masses_up = update_masses(m_occ_pred, m_free_pred, meas_cell_array, i);
-            float rho_b = separate_newborn_part(m_occ_pred, masses_up.x, p_B);
-            float rho_p = masses_up.x - rho_b;
-            born_masses_array[i] = rho_b;
-
-            store_values(rho_b, rho_p, masses_up.y, masses_up.x, m_occ_pred, grid_cell_array, i);
+        float  m_occ_pred = 0.5f;  // assume initially an unknown state
+        if (start_idx != -1) {
+            m_occ_pred = subtract(weight_array_accum, start_idx, end_idx);
         }
-        else
-        {
-            float m_occ = grid_cell_array.occ_mass[i];
-            float m_free = predict_free_mass(grid_cell_array.free_mass[i], m_occ);
-            float2 masses_up = update_masses(m_occ, m_free, meas_cell_array, i);
-            born_masses_array[i] = 0.0f;
-            store_values(0.0f, masses_up.x, masses_up.y, masses_up.x, 0.0f, grid_cell_array, i);
-        }
+
+        float m_free_pred = predict_free_mass(grid_cell_array.free_mass[i], m_occ_pred);
+        float2 masses_up = update_masses(m_occ_pred, m_free_pred, meas_cell_array, i);
+        float rho_b = separate_newborn_part(m_occ_pred, masses_up.x, p_B);
+        float rho_p = masses_up.x - rho_b;
+        born_masses_array[i] = rho_b;
+
+        store_values(rho_b, rho_p, masses_up.y, masses_up.x, m_occ_pred, grid_cell_array, i);
     }
 }
 
