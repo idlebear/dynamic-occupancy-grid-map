@@ -35,7 +35,6 @@ __global__ void moveMapKernel(GridCellsSoA grid_cell_array, GridCellsSoA old_gri
 {
     const int x = blockIdx.x * blockDim.x + threadIdx.x;
     const int y = blockIdx.y * blockDim.y + threadIdx.y;
-    float eps = 0.001f;
 
     if (x < grid_size && y < grid_size)
     {
