@@ -100,7 +100,13 @@ __global__ void transformPolarGridToCartesian(
         // convert the desired X and Y coordinates in grid form into an angle and
         // radius.  The polar map cell is then found by subtracting the minimum angle and
         // dividing by the increment/resolution to find the actual column.
-        float translated_theta = atan2( grid_y, grid_x ) * 180.0 / M_PI  - theta_min;
+        auto translated_theta = atan2( grid_y, grid_x ) * 180.0f / M_PI  - theta_min;
+        if( translated_theta > 360.0f ) {
+            translated_theta -= 360.0f;
+        } else if( translated_theta < 0.0f ) {
+            translated_theta += 360.0f;
+        }
+
         float translated_r = sqrt(grid_x * grid_x + grid_y * grid_y);
         int theta1 = int(translated_theta / theta_inc);
         int r1 = int( translated_r / r_inc );
