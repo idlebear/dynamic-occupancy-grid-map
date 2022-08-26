@@ -27,14 +27,14 @@ __device__ float2 combine_masses(float2 prior, float2 meas)
     return res;
 }
 
-__device__ auto pFree(int i, float p_min, float p_max, int max_range) -> float
+__device__ auto pFree( float pOcc, float occ_max, float free_max ) -> float
 {
-    return p_min + i * (p_max - p_min) / max_range;
+    auto pFree = free_max - free_max * (1 - pOcc / occ_max );
+    return max(pFree, 1 - pOcc);
 }
 
-__device__ auto pOcc(int r, float zk, int index, float resolution, float stddev_range) -> float
+__device__ auto pOcc(int r, float zk, int index, float resolution, float stddev_range, float occ_max) -> float
 {
-    auto occ_max = 0.95f;
     auto diff = float(index - r) * resolution;
 
     return occ_max * exp(-0.5f * diff * diff / (stddev_range*stddev_range));
@@ -43,22 +43,22 @@ __device__ auto pOcc(int r, float zk, int index, float resolution, float stddev_
 __device__ auto inverse_sensor_model(int i, float resolution, float zk, float r_max, float stddev_range) -> float2
 {
     // Masses: mOcc, mFree
-
-    const float free = pFree(i, 0.15f, 1.0f, r_max);
     float2 res;
+    const auto occ_max = 0.95f;
+    const auto free_max = 0.95f;
 
-    if (isfinite(zk))
-    {
+    if (isfinite(zk)) {
         const int r = static_cast<int>(zk / resolution);
-        const float occ = pOcc(r, zk, i, resolution, stddev_range);
+        const float occ = pOcc(r, zk, i, resolution, stddev_range, occ_max);
 
         if (i <= r) {
-             res = occ > free ? make_float2(occ, 0.0f) : make_float2(0.0f, 1.0f - free);
+            const float free = pFree(occ, occ_max, free_max);
+            res = make_float2(occ, free ); // occ > free ? make_float2(occ, 0.0f) : make_float2(0.0f, free);
         } else {
             res = occ > 0.5f ? make_float2(occ, 0.0f) : make_float2(0.0f, 0.0f);
         }
     } else {
-        res = make_float2(0.0f, 1.0f - free);
+        res = make_float2(0.0f, 0.0f);
     }
 
     return res;
@@ -94,13 +94,19 @@ __global__ void transformPolarGridToCartesian(
     if (x < grid_size && y < grid_size)
     {
         // find the true theta/radius that corresponds to the requested (x,y)
-        float grid_x = float(x - grid_size / 2.0) * grid_resolution;
-        float grid_y = float(y - grid_size / 2.0) * grid_resolution;
+        float grid_x = (float(x) - float(grid_size) / 2.0f) * grid_resolution;
+        float grid_y = (float(y) - float(grid_size) / 2.0f) * grid_resolution;
 
         // convert the desired X and Y coordinates in grid form into an angle and
         // radius.  The polar map cell is then found by subtracting the minimum angle and
         // dividing by the increment/resolution to find the actual column.
-        float translated_theta = atan2( grid_y, grid_x ) * 180.0 / M_PI  - theta_min;
+        auto translated_theta = atan2( grid_y, grid_x ) * 180.0f / M_PI  - theta_min;
+        if( translated_theta > 360.0f ) {
+            translated_theta -= 360.0f;
+        } else if( translated_theta < 0.0f ) {
+            translated_theta += 360.0f;
+        }
+
         float translated_r = sqrt(grid_x * grid_x + grid_y * grid_y);
         int theta1 = int(translated_theta / theta_inc);
         int r1 = int( translated_r / r_inc );
@@ -153,7 +159,7 @@ __global__ void transformPolarGridToCartesian(
                    + m21.y * theta2_prop * r1_prop
                    + m22.y * theta2_prop * r2_prop;
             meas_grid.likelihood[index] = 1.0f;
-            meas_grid.p_A[index] = 1.0f;
+            meas_grid.p_A[index] = 0.0f;
         }
     }
 }

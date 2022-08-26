@@ -33,6 +33,8 @@
 // #include <opencv2/cudawarping.hpp>
 
 
+#define DEBUG 0
+
 namespace dogm
 {
 
@@ -255,9 +257,6 @@ void DOGM::particleAssignment()
 {
     reinitGridParticleIndices<<<grid_map_grid, block_dim>>>(grid_cell_array, grid_cell_count);
 
-    // normalize the particle weights
-    normalize<float>( particle_array.weight, particle_count );
-
     // sort particles
     thrust::device_ptr<int> grid_index_ptr(particle_array.grid_cell_idx);
     thrust::device_ptr<float> weight_ptr(particle_array.weight);
@@ -273,12 +272,15 @@ void DOGM::particleAssignment()
 void DOGM::gridCellOccupancyUpdate()
 {
     thrust::device_vector<float> weights_accum(particle_count);
-    accumulate(weight_array, weights_accum);
+    accumulate(particle_array.weight, weights_accum);
     float* weight_array_accum = thrust::raw_pointer_cast(weights_accum.data());
 
     gridCellPredictionUpdateKernel<<<grid_map_grid, block_dim>>>(grid_cell_array, particle_array, weight_array,
                                                                  weight_array_accum, meas_cell_array, born_masses_array,
-                                                                 params.birth_prob, grid_cell_count);
+                                                                 params.persistence_prob, params.birth_prob, grid_cell_count);
+    #if DEBUG
+    check_weights( particle_array, particle_count, grid_cell_array, grid_cell_count, grid_map_grid, block_dim );
+    #endif
 }
 
 void DOGM::updatePersistentParticles()
@@ -372,11 +374,11 @@ void DOGM::resampling()
     // Not sure this step is required as the calc_resampled_indices() function uses thrust::lower_bound to find the
     // indices where the rand values land in the increasing/accumulated weights of both old and new particle lists -- and
     // since rand_max must be less than joint_max (it's part of the parameters to the rand gen function), every
-    // value already has a location.  Besides, (re)setting that end value is expensive... not to mention the sort cost
-    // If the max rand is required, a simple linear search is a far better choice.
+    // value already has a location.
     //
     // thrust::sort(rand_vector.begin(), rand_vector.end());
     //
+
     thrust::device_vector<int> idx_resampled(particle_count);
     calc_resampled_indices(joint_weight_accum, rand_vector, idx_resampled, joint_max);
     int* idx_array_resampled = thrust::raw_pointer_cast(idx_resampled.data());

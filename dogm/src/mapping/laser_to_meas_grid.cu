@@ -23,7 +23,7 @@ dogm::LaserMeasurementGrid::~LaserMeasurementGrid()
     meas_grid.free();
 }
 
-dogm::MeasurementCellsSoA dogm::LaserMeasurementGrid::generateGrid(const std::vector<float>& measurements)
+dogm::MeasurementCellsSoA dogm::LaserMeasurementGrid::generateGrid(const std::vector<float>& measurements, float angle_offset )
 {
     const int num_measurements = measurements.size();
 
@@ -45,7 +45,7 @@ dogm::MeasurementCellsSoA dogm::LaserMeasurementGrid::generateGrid(const std::ve
 
     // // transform polar representation to a cartesian grid
     transformPolarGridToCartesian<<<cart_grid_dim, dim_block>>>( meas_grid, grid_size, grid_resolution,
-        polar_grid, polar_width, polar_height, theta_min, laser_params.angle_increment, laser_params.resolution,
+        polar_grid, polar_width, polar_height, theta_min+angle_offset, laser_params.angle_increment, laser_params.resolution,
         false );
     CUDA_CALL(cudaGetLastError());
 

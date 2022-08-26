@@ -13,6 +13,6 @@ __global__ void gridCellPredictionUpdateKernel(GridCellsSoA grid_cell_array, Par
                                                float* __restrict__ weight_array,
                                                const float* __restrict__ weight_array_accum,
                                                const MeasurementCellsSoA meas_cell_array,
-                                               float* __restrict__ born_masses_array, float p_B, int cell_count);
+                                               float* __restrict__ born_masses_array, float p_S, float p_B, int cell_count);
 
 } /* namespace dogm */
