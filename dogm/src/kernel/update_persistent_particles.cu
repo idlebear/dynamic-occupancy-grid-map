@@ -13,14 +13,9 @@
 namespace dogm
 {
 
-__device__ float calc_norm_assoc(float occ_accum, float rho_p)
+__device__ float calc_norm(float mass, float rho_p)
 {
-    return occ_accum > 0.0f ? rho_p / occ_accum : 0.0f;
-}
-
-__device__ float calc_norm_unassoc(float pred_occ_mass, float pers_occ_mass)
-{
-    return pred_occ_mass > 0.0f ? pers_occ_mass / pred_occ_mass : 0.0f;
+    return mass > 0.0f ? rho_p / mass : 0.0f;
 }
 
 __device__ void set_normalization_components(GridCellsSoA grid_cell_array, int i, float mu_A, float mu_UA)
@@ -66,8 +61,9 @@ __global__ void updatePersistentParticlesKernel2(GridCellsSoA grid_cell_array,
         {
             float m_occ_accum = subtract(weight_array_accum, start_idx, end_idx);
             float rho_p = grid_cell_array.pers_occ_mass[i];
-            float mu_A = calc_norm_assoc(m_occ_accum, rho_p);
-            float mu_UA = calc_norm_unassoc(grid_cell_array.pred_occ_mass[i], grid_cell_array.pers_occ_mass[i]);
+            float mu_A = calc_norm(m_occ_accum, rho_p);
+            float mu_UA = calc_norm(grid_cell_array.pred_occ_mass[i], rho_p);
+
             set_normalization_components(grid_cell_array, i, mu_A, mu_UA);
         }
     }
