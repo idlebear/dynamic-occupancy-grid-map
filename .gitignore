@@ -687,3 +687,9 @@ FodyWeavers.xsd
 *.tlog
 
 # End of https://www.toptal.com/developers/gitignore/api/c++,cuda,macos,linux,cmake,xcode,windows,visualstudio,clion,ros
+
+dogm/.idea/
+
+.vscode/
+
+.idea/
