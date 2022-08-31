@@ -121,7 +121,10 @@ if(BUILD_TESTS)
 endif()
 
 add_subdirectory(demo)
-add_subdirectory(python)
+
+# python wrapper for dogm library
+# TODO:  currently broken due to ongoing changes -- remove for now 
+# add_subdirectory(python)
 
 # Install package.xml for catkin
 install(FILES package.xml DESTINATION share/${PROJECT_NAME}/)
