@@ -8,7 +8,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 option(BUILD_TESTS "Build unit tests" OFF)
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/")
 find_package(OpenGL REQUIRED)
 
 find_package(GLM)
@@ -34,7 +34,10 @@ find_package(OpenCV REQUIRED)
 find_package(Eigen3 3.4 REQUIRED)
 
 LIST (APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+
+if(BUILD_TESTS)
 INCLUDE(GoogleTestDownloadAndBuild)
+endif()
 
 include_directories(
 	SYSTEM
@@ -47,40 +50,40 @@ include_directories(
 )
 
 set(HEADER_FILES
-		${CMAKE_HOME_DIRECTORY}/include/dogm/kernel/init.h
-		${CMAKE_HOME_DIRECTORY}/include/dogm/kernel/init_new_particles.h
-		${CMAKE_HOME_DIRECTORY}/include/dogm/kernel/mass_update.h
-		${CMAKE_HOME_DIRECTORY}/include/dogm/kernel/particle_to_grid.h
-		${CMAKE_HOME_DIRECTORY}/include/dogm/kernel/predict.h
-		${CMAKE_HOME_DIRECTORY}/include/dogm/kernel/resampling.h
-        ${CMAKE_HOME_DIRECTORY}/include/dogm/kernel/resampling_parallel.h
-		${CMAKE_HOME_DIRECTORY}/include/dogm/kernel/statistical_moments.h
-		${CMAKE_HOME_DIRECTORY}/include/dogm/kernel/update_persistent_particles.h
-		${CMAKE_HOME_DIRECTORY}/include/dogm/kernel/ego_motion_compensation.h
-		${CMAKE_HOME_DIRECTORY}/include/dogm/common.h
-		${CMAKE_HOME_DIRECTORY}/include/dogm/cuda_utils.h
-		${CMAKE_HOME_DIRECTORY}/include/dogm/dogm.h
-		${CMAKE_HOME_DIRECTORY}/include/dogm/dogm_types.h
-		${CMAKE_HOME_DIRECTORY}/include/dogm/mapping/laser_to_meas_grid.h
-		${CMAKE_HOME_DIRECTORY}/include/dogm/mapping/kernel/measurement_grid.h
+		${CMAKE_CURRENT_SOURCE_DIR}/include/dogm/kernel/init.h
+		${CMAKE_CURRENT_SOURCE_DIR}/include/dogm/kernel/init_new_particles.h
+		${CMAKE_CURRENT_SOURCE_DIR}/include/dogm/kernel/mass_update.h
+		${CMAKE_CURRENT_SOURCE_DIR}/include/dogm/kernel/particle_to_grid.h
+		${CMAKE_CURRENT_SOURCE_DIR}/include/dogm/kernel/predict.h
+		${CMAKE_CURRENT_SOURCE_DIR}/include/dogm/kernel/resampling.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/dogm/kernel/resampling_parallel.h
+		${CMAKE_CURRENT_SOURCE_DIR}/include/dogm/kernel/statistical_moments.h
+		${CMAKE_CURRENT_SOURCE_DIR}/include/dogm/kernel/update_persistent_particles.h
+		${CMAKE_CURRENT_SOURCE_DIR}/include/dogm/kernel/ego_motion_compensation.h
+		${CMAKE_CURRENT_SOURCE_DIR}/include/dogm/common.h
+		${CMAKE_CURRENT_SOURCE_DIR}/include/dogm/cuda_utils.h
+		${CMAKE_CURRENT_SOURCE_DIR}/include/dogm/dogm.h
+		${CMAKE_CURRENT_SOURCE_DIR}/include/dogm/dogm_types.h
+		${CMAKE_CURRENT_SOURCE_DIR}/include/dogm/mapping/laser_to_meas_grid.h
+		${CMAKE_CURRENT_SOURCE_DIR}/include/dogm/mapping/kernel/measurement_grid.h
 )
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${HEADER_FILES})
 
 set(SRC_FILES
-	${CMAKE_HOME_DIRECTORY}/src/kernel/init.cu
-		${CMAKE_HOME_DIRECTORY}/src/kernel/init_new_particles.cu
-		${CMAKE_HOME_DIRECTORY}/src/kernel/mass_update.cu
-		${CMAKE_HOME_DIRECTORY}/src/kernel/particle_to_grid.cu
-		${CMAKE_HOME_DIRECTORY}/src/kernel/predict.cu
-		${CMAKE_HOME_DIRECTORY}/src/kernel/resampling.cu
-		${CMAKE_HOME_DIRECTORY}/src/kernel/resampling_parallel.cu
-		${CMAKE_HOME_DIRECTORY}/src/kernel/statistical_moments.cu
-		${CMAKE_HOME_DIRECTORY}/src/kernel/update_persistent_particles.cu
-		${CMAKE_HOME_DIRECTORY}/src/kernel/ego_motion_compensation.cu
-		${CMAKE_HOME_DIRECTORY}/src/dogm.cu
-		${CMAKE_HOME_DIRECTORY}/src/mapping/laser_to_meas_grid.cu
-		${CMAKE_HOME_DIRECTORY}/src/mapping/kernel/measurement_grid.cu
+	${CMAKE_CURRENT_SOURCE_DIR}/src/kernel/init.cu
+	${CMAKE_CURRENT_SOURCE_DIR}/src/kernel/init_new_particles.cu
+	${CMAKE_CURRENT_SOURCE_DIR}/src/kernel/mass_update.cu
+	${CMAKE_CURRENT_SOURCE_DIR}/src/kernel/particle_to_grid.cu
+	${CMAKE_CURRENT_SOURCE_DIR}/src/kernel/predict.cu
+	${CMAKE_CURRENT_SOURCE_DIR}/src/kernel/resampling.cu
+	${CMAKE_CURRENT_SOURCE_DIR}/src/kernel/resampling_parallel.cu
+	${CMAKE_CURRENT_SOURCE_DIR}/src/kernel/statistical_moments.cu
+	${CMAKE_CURRENT_SOURCE_DIR}/src/kernel/update_persistent_particles.cu
+	${CMAKE_CURRENT_SOURCE_DIR}/src/kernel/ego_motion_compensation.cu
+	${CMAKE_CURRENT_SOURCE_DIR}/src/dogm.cu
+	${CMAKE_CURRENT_SOURCE_DIR}/src/mapping/laser_to_meas_grid.cu
+	${CMAKE_CURRENT_SOURCE_DIR}/src/mapping/kernel/measurement_grid.cu
 )
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SRC_FILES})
@@ -90,7 +93,14 @@ add_library(dogm SHARED
 	${SRC_FILES}
 )
 
-target_include_directories(dogm PUBLIC include)
+
+target_include_directories(dogm
+    PUBLIC
+        $<INSTALL_INTERFACE:include>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src>
+    )
 
 # support for gpu lambdas
 string(APPEND CMAKE_CUDA_FLAGS " --expt-extended-lambda")
@@ -123,7 +133,7 @@ endif()
 add_subdirectory(demo)
 
 # python wrapper for dogm library
-# TODO:  currently broken due to ongoing changes -- remove for now 
+# TODO:  currently broken due to ongoing changes -- remove for now
 # add_subdirectory(python)
 
 # Install package.xml for catkin
