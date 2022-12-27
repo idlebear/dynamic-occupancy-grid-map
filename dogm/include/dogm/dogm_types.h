@@ -346,6 +346,22 @@ struct MeasurementCellsSoA
         CUDA_CALL(cudaMemcpy(p_A, other.p_A, size * sizeof(float), kind));
     }
 
+    // TODO: Added a second copy function to allow sending the measurement data directly to
+    //       python without another extra copy.   There probably is a better way to do this,
+    //       but this should work for now...
+    void copy(float* buffer, size_t bytes)
+    {
+        assert( bytes >= size * 2 );
+
+        auto kind = cudaMemcpyHostToHost;
+        if( device ) {
+            kind = cudaMemcpyDeviceToHost;
+        }
+
+        CUDA_CALL(cudaMemcpy(buffer, occ_mass, size * sizeof(float), kind));
+        CUDA_CALL(cudaMemcpy(&buffer[size], free_mass, size * sizeof(float), kind));
+    }
+
     MeasurementCellsSoA& operator=(const MeasurementCellsSoA& other)
     {
         if (this != &other)
