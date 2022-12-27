@@ -27,16 +27,18 @@ __device__ float2 combine_masses(float2 prior, float2 meas)
     return res;
 }
 
-__device__ auto pFree( float pOcc, float occ_max, float free_max ) -> float
+__device__ auto pFree( int i, float free_min, float free_max, float occ, int r_max ) -> float
 {
-    auto pFree = free_max - free_max * (1 - pOcc / occ_max );
-    return max(pFree, 1 - pOcc);
+    // calculate the prob of the cell being free based on how far away it is -- cells further
+    // away are less likely to be actually free due to sensor error
+    // Note: pFree + pOcc + unknown = 1 -- make sure there is no overflow in the sensor reading
+    return min( free_min + float(r_max - i) * (free_max - free_min) / r_max, 1 - occ );
 }
 
 __device__ auto pOcc(int r, float zk, int index, float resolution, float stddev_range, float occ_max) -> float
 {
+    // calculate the occupancy probability based on a gaussian distribution
     auto diff = float(index - r) * resolution;
-
     return occ_max * exp(-0.5f * diff * diff / (stddev_range*stddev_range));
 }
 
@@ -45,6 +47,7 @@ __device__ auto inverse_sensor_model(int i, float resolution, float zk, float r_
     // Masses: mOcc, mFree
     float2 res;
     const auto occ_max = 0.95f;
+    const auto free_min = 0.05f;
     const auto free_max = 0.95f;
 
     if (isfinite(zk)) {
@@ -52,12 +55,16 @@ __device__ auto inverse_sensor_model(int i, float resolution, float zk, float r_
         const float occ = pOcc(r, zk, i, resolution, stddev_range, occ_max);
 
         if (i <= r) {
-            const float free = pFree(occ, occ_max, free_max);
-            res = make_float2(occ, free ); // occ > free ? make_float2(occ, 0.0f) : make_float2(0.0f, free);
+            // Within range of the sensor
+            auto free = pFree(i, free_min, free_max, occ, r_max);
+            res = make_float2(occ, free);
         } else {
+            // Preserve the 'far' side of the gaussian occupancy, otherwise, assume
+            // no information
             res = occ > 0.5f ? make_float2(occ, 0.0f) : make_float2(0.0f, 0.0f);
         }
     } else {
+        // No information
         res = make_float2(0.0f, 0.0f);
     }
 
