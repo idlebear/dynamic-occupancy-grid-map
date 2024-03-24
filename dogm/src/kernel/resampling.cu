@@ -31,7 +31,6 @@ __global__ void resamplingGenerateRandomNumbersKernel(float* __restrict__ rand_a
     global_state[thread_id] = local_state;
 }
 
-
 void calc_resampled_indices(thrust::device_vector<float>& joint_weight_accum, thrust::device_vector<float>& rand_array,
                             thrust::device_vector<int>& indices, float accum_max)
 {
@@ -60,6 +59,5 @@ __global__ void resamplingKernel(const ParticlesSoA particle_array, ParticlesSoA
         particle_array_next.weight[i] = new_weight;
     }
 }
-
 
 } /* namespace dogm */

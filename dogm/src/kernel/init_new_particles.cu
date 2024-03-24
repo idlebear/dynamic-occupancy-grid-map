@@ -74,8 +74,7 @@ void normalize_particle_orders(float* particle_orders_array_accum, int particle_
         GPU_LAMBDA(float x) { return x * (v_B / max); });
 }
 
-__global__ void copyMassesKernel(const MeasurementCellsSoA meas_cell_array, float* __restrict__ masses,
-                                 int cell_count)
+__global__ void copyMassesKernel(const MeasurementCellsSoA meas_cell_array, float* __restrict__ masses, int cell_count)
 {
     for (int j = blockIdx.x * blockDim.x + threadIdx.x; j < cell_count; j += blockDim.x * gridDim.x)
     {
@@ -83,8 +82,8 @@ __global__ void copyMassesKernel(const MeasurementCellsSoA meas_cell_array, floa
     }
 }
 
-__global__ void initParticlesKernel1(ParticlesSoA particle_array,
-                                     const float* __restrict__ particle_orders_array_accum, int cell_count)
+__global__ void initParticlesKernel1(ParticlesSoA particle_array, const float* __restrict__ particle_orders_array_accum,
+                                     int cell_count)
 {
     for (int j = blockIdx.x * blockDim.x + threadIdx.x; j < cell_count; j += blockDim.x * gridDim.x)
     {
@@ -98,7 +97,7 @@ __global__ void initParticlesKernel1(ParticlesSoA particle_array,
     }
 }
 
-__global__ void initParticlesKernel2(ParticlesSoA particle_array, curandState* __restrict__ global_state, 
+__global__ void initParticlesKernel2(ParticlesSoA particle_array, curandState* __restrict__ global_state,
                                      float velocity, int grid_size, float new_weight, int particle_count,
                                      float resolution)
 {
@@ -123,8 +122,7 @@ __global__ void initParticlesKernel2(ParticlesSoA particle_array, curandState* _
     global_state[thread_id] = local_state;
 }
 
-__global__ void initNewParticlesKernel1(GridCellsSoA grid_cell_array,
-                                        const MeasurementCellsSoA meas_cell_array,
+__global__ void initNewParticlesKernel1(GridCellsSoA grid_cell_array, const MeasurementCellsSoA meas_cell_array,
                                         const float* __restrict__ weight_array,
                                         const float* __restrict__ born_masses_array, ParticlesSoA birth_particle_array,
                                         const float* __restrict__ particle_orders_array_accum, int cell_count)
@@ -160,8 +158,7 @@ __global__ void initNewParticlesKernel1(GridCellsSoA grid_cell_array,
 
 __global__ void initNewParticlesKernel2(ParticlesSoA birth_particle_array, const GridCellsSoA grid_cell_array,
                                         curandState* __restrict__ global_state, float stddev_velocity,
-                                        float max_velocity, int grid_size, int particle_count,
-                                        float resolution)
+                                        float max_velocity, int grid_size, int particle_count, float resolution)
 {
     int thread_id = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = blockDim.x * gridDim.x;

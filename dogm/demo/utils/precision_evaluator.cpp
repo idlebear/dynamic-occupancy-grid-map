@@ -65,7 +65,8 @@ void PrecisionEvaluator::evaluateAndStoreStep(int simulation_step_index,
             }
 
             std::sort(matching_groundtruth_vehicles.begin(), matching_groundtruth_vehicles.end(),
-                      [&cluster_mean](const Vehicle& a, const Vehicle& b) {
+                      [&cluster_mean](const Vehicle& a, const Vehicle& b)
+                      {
                           const float distance_a =
                               sqrtf(powf(cluster_mean.x - a.pos[0], 2.0f) + powf(cluster_mean.y - a.pos[1], 2.0f));
                           const float distance_b =

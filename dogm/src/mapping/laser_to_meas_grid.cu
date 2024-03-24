@@ -2,18 +2,19 @@
 // SPDX-License-Identifier: MIT
 // See accompanying LICENSE file for detailed information
 
-#include "dogm/mapping/laser_to_meas_grid.h"
 #include "dogm/mapping/kernel/measurement_grid.h"
+#include "dogm/mapping/laser_to_meas_grid.h"
 
 dogm::LaserMeasurementGrid::LaserMeasurementGrid(const Params& laser_params, float grid_length, float grid_resolution)
-    : grid_size(static_cast<int>(grid_length / grid_resolution)), grid_resolution( grid_resolution), laser_params(laser_params),
-      polar_width(ceil( laser_params.fov / laser_params.angle_increment )), polar_height( ceil( laser_params.max_range / laser_params.resolution ) )
+    : grid_size(static_cast<int>(grid_length / grid_resolution)), grid_resolution(grid_resolution),
+      laser_params(laser_params), polar_width(ceil(laser_params.fov / laser_params.angle_increment)),
+      polar_height(ceil(laser_params.max_range / laser_params.resolution))
 {
     int grid_cell_count = grid_size * grid_size;
 
     meas_grid.init(grid_cell_count, true);
 
-    theta_min = - (laser_params.fov / 2.0);
+    theta_min = -(laser_params.fov / 2.0);
     CUDA_CALL(cudaMalloc(&polar_grid, polar_width * polar_height * sizeof(float2)));
 }
 
@@ -23,7 +24,8 @@ dogm::LaserMeasurementGrid::~LaserMeasurementGrid()
     meas_grid.free();
 }
 
-dogm::MeasurementCellsSoA dogm::LaserMeasurementGrid::generateGrid(const std::vector<float>& measurements, float angle_offset )
+dogm::MeasurementCellsSoA dogm::LaserMeasurementGrid::generateGrid(const std::vector<float>& measurements,
+                                                                   float angle_offset)
 {
     const int num_measurements = measurements.size();
 
@@ -39,14 +41,14 @@ dogm::MeasurementCellsSoA dogm::LaserMeasurementGrid::generateGrid(const std::ve
 
     // convert the measurement information into a polar representation
     createPolarGridKernel<<<polar_grid_dim, dim_block>>>(polar_grid, d_measurements, polar_width, polar_height,
-                                                          laser_params.resolution, laser_params.stddev_range);
+                                                         laser_params.resolution, laser_params.stddev_range);
 
     CUDA_CALL(cudaGetLastError());
 
     // // transform polar representation to a cartesian grid
-    transformPolarGridToCartesian<<<cart_grid_dim, dim_block>>>( meas_grid, grid_size, grid_resolution,
-        polar_grid, polar_width, polar_height, theta_min+angle_offset, laser_params.angle_increment, laser_params.resolution,
-        false );
+    transformPolarGridToCartesian<<<cart_grid_dim, dim_block>>>(
+        meas_grid, grid_size, grid_resolution, polar_grid, polar_width, polar_height, theta_min + angle_offset,
+        laser_params.angle_increment, laser_params.resolution, false);
     CUDA_CALL(cudaGetLastError());
 
     CUDA_CALL(cudaFree(d_measurements));

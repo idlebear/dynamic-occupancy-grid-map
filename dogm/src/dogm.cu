@@ -23,15 +23,14 @@
 
 #include <cuda_runtime.h>
 
-#include <cmath>
-#include <vector>
 #include <Eigen/Dense>
+#include <cmath>
 #include <stdexcept>
+#include <vector>
 
-#include <opencv2/opencv.hpp>
 #include <opencv2/core/cuda.hpp>
+#include <opencv2/opencv.hpp>
 // #include <opencv2/cudawarping.hpp>
-
 
 #define DEBUG 0
 
@@ -100,7 +99,7 @@ DOGM::~DOGM()
     CUDA_CALL(cudaFree(vel_x_squared_array));
     CUDA_CALL(cudaFree(vel_y_squared_array));
     CUDA_CALL(cudaFree(vel_xy_array));
-   CUDA_CALL(cudaFree(rand_array));
+    CUDA_CALL(cudaFree(rand_array));
 
     CUDA_CALL(cudaFree(rng_states));
     CUDA_CALL(cudaFree(idx_array_up));
@@ -122,7 +121,7 @@ void DOGM::initialize()
     CUDA_CALL(cudaStreamDestroy(grid_stream));
 }
 
-void DOGM::updateGrid( MeasurementCellsSoA measurement_grid, float new_x, float new_y, float dt )
+void DOGM::updateGrid(MeasurementCellsSoA measurement_grid, float new_x, float new_y, float dt)
 {
     updateMeasurementGrid(measurement_grid);
     updatePose(new_x, new_y);
@@ -134,8 +133,8 @@ void DOGM::updateGrid( MeasurementCellsSoA measurement_grid, float new_x, float 
     initializeNewParticles();
     statisticalMoments();
 
-     resampling();
-//    resampling_parallel_ns();
+    resampling();
+    //    resampling_parallel_ns();
 
     particle_array = particle_array_next;
 
@@ -150,7 +149,7 @@ GridCellsSoA DOGM::getGridCells() const
     return grid_cells;
 }
 
-void DOGM::freeGridCells( GridCellsSoA grid_cells ) const
+void DOGM::freeGridCells(GridCellsSoA grid_cells) const
 {
     grid_cells.free();
 }
@@ -184,20 +183,21 @@ void DOGM::updatePose(float new_x, float new_y)
         const float x_move = new_x - position_x;
         const float y_move = new_y - position_y;
 
-        if (x_move != 0 || y_move != 0 )
+        if (x_move != 0 || y_move != 0)
         {
-            moveParticlesKernel<<<particles_grid, block_dim>>>(particle_array, x_move, y_move,
-                                                               particle_count, params.resolution, grid_size);
+            moveParticlesKernel<<<particles_grid, block_dim>>>(particle_array, x_move, y_move, particle_count,
+                                                               params.resolution, grid_size);
 
             dim3 dim_block(32, 32);
             dim3 grid_dim(divUp(grid_size, dim_block.x), divUp(grid_size, dim_block.y));
 
             GridCellsSoA tmp_grid_cell_array(grid_cell_count, true);
 
-            moveMapKernel<<<grid_dim, dim_block>>>(tmp_grid_cell_array, grid_cell_array, meas_cell_array, particle_array,
-                                                   std::nearbyint(x_move / params.resolution ), std::nearbyint(y_move / params.resolution ), grid_size);
+            moveMapKernel<<<grid_dim, dim_block>>>(tmp_grid_cell_array, grid_cell_array, meas_cell_array,
+                                                   particle_array, std::nearbyint(x_move / params.resolution),
+                                                   std::nearbyint(y_move / params.resolution), grid_size);
 
-            grid_cell_array.move( tmp_grid_cell_array );
+            grid_cell_array.move(tmp_grid_cell_array);
 
             position_x = new_x;
             position_y = new_y;
@@ -230,13 +230,11 @@ void DOGM::initializeParticles()
 
     normalize_particle_orders(particle_orders_array_accum, grid_cell_count, particle_count);
 
-    initParticlesKernel1<<<grid_map_grid, block_dim>>>(particle_array,
-                                                       particle_orders_array_accum, grid_cell_count);
+    initParticlesKernel1<<<grid_map_grid, block_dim>>>(particle_array, particle_orders_array_accum, grid_cell_count);
 
-    initParticlesKernel2<<<particles_grid, block_dim>>>(
-        particle_array, rng_states, params.init_max_velocity, grid_size, new_weight, particle_count,
-        params.resolution);
- }
+    initParticlesKernel2<<<particles_grid, block_dim>>>(particle_array, rng_states, params.init_max_velocity, grid_size,
+                                                        new_weight, particle_count, params.resolution);
+}
 
 void DOGM::particlePrediction(float dt)
 {
@@ -275,12 +273,12 @@ void DOGM::gridCellOccupancyUpdate()
     accumulate(particle_array.weight, weights_accum);
     float* weight_array_accum = thrust::raw_pointer_cast(weights_accum.data());
 
-    gridCellPredictionUpdateKernel<<<grid_map_grid, block_dim>>>(grid_cell_array, particle_array, weight_array,
-                                                                 weight_array_accum, meas_cell_array, born_masses_array,
-                                                                 params.persistence_prob, params.birth_prob, grid_cell_count);
-    #if DEBUG
-    check_weights( particle_array, particle_count, grid_cell_array, grid_cell_count, grid_map_grid, block_dim );
-    #endif
+    gridCellPredictionUpdateKernel<<<grid_map_grid, block_dim>>>(
+        grid_cell_array, particle_array, weight_array, weight_array_accum, meas_cell_array, born_masses_array,
+        params.persistence_prob, params.birth_prob, grid_cell_count);
+#if DEBUG
+    check_weights(particle_array, particle_count, grid_cell_array, grid_cell_count, grid_map_grid, block_dim);
+#endif
 }
 
 void DOGM::updatePersistentParticles()
@@ -317,7 +315,6 @@ void DOGM::initializeNewParticles()
     initNewParticlesKernel2<<<birth_particles_grid, block_dim>>>(birth_particle_array, grid_cell_array, rng_states,
                                                                  params.stddev_velocity, params.init_max_velocity,
                                                                  grid_size, new_born_particle_count, params.resolution);
-
 }
 
 void DOGM::statisticalMoments()
@@ -372,8 +369,8 @@ void DOGM::resampling()
     thrust::device_ptr<float> rand_ptr(rand_array);
     thrust::device_vector<float> rand_vector(rand_ptr, rand_ptr + particle_count);
     // Not sure this step is required as the calc_resampled_indices() function uses thrust::lower_bound to find the
-    // indices where the rand values land in the increasing/accumulated weights of both old and new particle lists -- and
-    // since rand_max must be less than joint_max (it's part of the parameters to the rand gen function), every
+    // indices where the rand values land in the increasing/accumulated weights of both old and new particle lists --
+    // and since rand_max must be less than joint_max (it's part of the parameters to the rand gen function), every
     // value already has a location.
     //
     // thrust::sort(rand_vector.begin(), rand_vector.end());
@@ -401,12 +398,11 @@ void DOGM::resampling_parallel_ns()
     accumulate(joint_weight_array, joint_weight_accum);
 
     float joint_max = joint_weight_accum.back();
-    thrust::transform(joint_weight_accum.begin(), joint_weight_accum.end(),
-        joint_weight_accum.begin(), thrust::placeholders::_1 /= joint_max);
+    thrust::transform(joint_weight_accum.begin(), joint_weight_accum.end(), joint_weight_accum.begin(),
+                      thrust::placeholders::_1 /= joint_max);
     float new_weight = joint_max / particle_count;
 
-
-    unsigned long long int seed {static_cast<unsigned long long int>(clock())};
+    unsigned long long int seed{static_cast<unsigned long long int>(clock())};
     // thrust::device_vector<int> up_vec(particle_count, 0);
     // thrust::device_vector<int> down_vec(particle_count, 0);
     // int* idx_array_up = thrust::raw_pointer_cast(up_vec.data());
@@ -423,8 +419,7 @@ void DOGM::resampling_parallel_ns()
 
     // cudaDeviceSynchronize();
 
-    resampleSystematicIndexUp<<<particles_grid, block_dim>>>(particle_count,
-        seed, idx_array_up, accumulated_sum);
+    resampleSystematicIndexUp<<<particles_grid, block_dim>>>(particle_count, seed, idx_array_up, accumulated_sum);
 
     // cudaDeviceSynchronize();
     // std::cout << up_vec[0] << "\n";
@@ -435,14 +430,13 @@ void DOGM::resampling_parallel_ns()
     // CUDA_RT_CALL(cudaLaunchKernel(reinterpret_cast<void*>(&resampleSystematicIndexDown),
     //     40, 256, args_down, 0, cuda_streams[1]));
 
-    resampleSystematicIndexDown<<<particles_grid, block_dim>>>(particle_count,
-        seed, idx_array_down, accumulated_sum);
+    resampleSystematicIndexDown<<<particles_grid, block_dim>>>(particle_count, seed, idx_array_down, accumulated_sum);
 
     // CUDA_CALL(cudaDeviceSynchronize());
     // cudaDeviceSynchronize();
 
-    resampleIndexKernel<<<particles_grid, block_dim>>>(particle_array, particle_array_next,
-        birth_particle_array, idx_array_up, idx_array_down, new_weight, particle_count);
+    resampleIndexKernel<<<particles_grid, block_dim>>>(particle_array, particle_array_next, birth_particle_array,
+                                                       idx_array_up, idx_array_down, new_weight, particle_count);
 }
 
 cv::Mat DOGM::getPredOccMassImage(GridCellsSoA& grid_cells) const
@@ -453,7 +447,7 @@ cv::Mat DOGM::getPredOccMassImage(GridCellsSoA& grid_cells) const
         cv::Vec3b color;
         int x = i % grid_size;
         int y = i / grid_size;
-        color[0] = color[1] = color[2] = uchar((1-grid_cells.pred_occ_mass[i]) * 255);
+        color[0] = color[1] = color[2] = uchar((1 - grid_cells.pred_occ_mass[i]) * 255);
         image.at<cv::Vec3b>(grid_size - x - 1, grid_size - y - 1) = color;
     }
     return image;
@@ -467,7 +461,7 @@ cv::Mat DOGM::getNewBornOccMassImage(GridCellsSoA& grid_cells) const
         cv::Vec3b color;
         int x = i % grid_size;
         int y = i / grid_size;
-        color[0] = color[1] = color[2] = uchar((1-grid_cells.new_born_occ_mass[i]) * 255);
+        color[0] = color[1] = color[2] = uchar((1 - grid_cells.new_born_occ_mass[i]) * 255);
         image.at<cv::Vec3b>(grid_size - x - 1, grid_size - y - 1) = color;
     }
     return image;
@@ -481,7 +475,7 @@ cv::Mat DOGM::getPersOccMassImage(GridCellsSoA& grid_cells) const
         cv::Vec3b color;
         int x = i % grid_size;
         int y = i / grid_size;
-        color[0] = color[1] = color[2] = uchar((1-grid_cells.pers_occ_mass[i]) * 255);
+        color[0] = color[1] = color[2] = uchar((1 - grid_cells.pers_occ_mass[i]) * 255);
         image.at<cv::Vec3b>(grid_size - x - 1, grid_size - y - 1) = color;
     }
     return image;
@@ -497,20 +491,21 @@ cv::Mat DOGM::getOccupancyImage(GridCellsSoA& grid_cells) const
         cv::Vec3b color;
         int x = i % grid_size;
         int y = i / grid_size;
-        color[0] = color[1] = color[2] = uchar((1-(occ_mass + (1 - occ_mass - free_mass) / 2)) * 255);
+        color[0] = color[1] = color[2] = uchar((1 - (occ_mass + (1 - occ_mass - free_mass) / 2)) * 255);
         image.at<cv::Vec3b>(grid_size - x - 1, grid_size - y - 1) = color;
     }
     return image;
 }
 
-
 cv::Mat DOGM::getParticleCountImage(GridCellsSoA& grid_cells) const
 {
     cv::Mat image(grid_size, grid_size, CV_8UC3);
     auto max_particles = 0;
-    for (int i = 0; i < grid_cell_count; i++) {
+    for (int i = 0; i < grid_cell_count; i++)
+    {
         const auto count = grid_cells.end_idx[i] - grid_cells.start_idx[i];
-        if (count > max_particles) {
+        if (count > max_particles)
+        {
             max_particles = count;
         }
     }
@@ -520,7 +515,8 @@ cv::Mat DOGM::getParticleCountImage(GridCellsSoA& grid_cells) const
         cv::Vec3b color;
         int x = i % grid_size;
         int y = i / grid_size;
-        color[0] = color[1] = color[2] = uchar((1.0 - float(grid_cells.end_idx[i] - grid_cells.start_idx[i])/float(max_particles)) * 255);
+        color[0] = color[1] = color[2] =
+            uchar((1.0 - float(grid_cells.end_idx[i] - grid_cells.start_idx[i]) / float(max_particles)) * 255);
         image.at<cv::Vec3b>(grid_size - x - 1, grid_size - y - 1) = color;
     }
     return image;

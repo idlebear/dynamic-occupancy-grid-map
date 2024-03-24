@@ -4,16 +4,16 @@
 
 #pragma once
 
-#include "dogm_types.h"
 #include "dogm/mapping/laser_to_meas_grid.h"
+#include "dogm_types.h"
 
 #include <cuda_runtime.h>
 #include <curand_kernel.h>
 #include <glm/mat4x4.hpp>
 #include <glm/vec4.hpp>
 #include <memory>
-#include <vector>
 #include <opencv2/opencv.hpp>
+#include <vector>
 
 namespace dogm
 {
@@ -76,7 +76,7 @@ public:
      * @param dt delta time since the last update.
      * @param device whether the measurement grid resides in GPU memory (default: true).
      */
-     void updateGrid(MeasurementCellsSoA measurement_grid, float new_x, float new_y, float dt);
+    void updateGrid(MeasurementCellsSoA measurement_grid, float new_x, float new_y, float dt);
 
     /**
      * Returns the grid map in the host memory.
@@ -85,12 +85,11 @@ public:
      */
     GridCellsSoA getGridCells() const;
 
-
     /**
      * Releases memory allocated for grid cells.
      * @param grid_cells previously allocated GridCellSoA returned for disposal.
      */
-    void freeGridCells( GridCellsSoA grid_cells ) const;
+    void freeGridCells(GridCellsSoA grid_cells) const;
 
     /**
      * Returns the measurement grid map in the host memory.
@@ -141,6 +140,7 @@ public:
     cv::Mat getPersOccMassImage(GridCellsSoA& grid_cells) const;
     cv::Mat getOccupancyImage(GridCellsSoA& grid_cells) const;
     cv::Mat getParticleCountImage(GridCellsSoA& grid_cells) const;
+
 private:
     void initialize();
 

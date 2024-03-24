@@ -192,14 +192,15 @@ struct GridCellsSoA
         CUDA_CALL(cudaMemcpy(covar_xy_vel, other.covar_xy_vel, size * sizeof(float), kind));
     }
 
-    void move( GridCellsSoA& other )
+    void move(GridCellsSoA& other)
     {
-        if( this == &other )
+        if (this == &other)
         {
             return;
         }
-        if( device != other.device ) {
-            copy( other, device ? cudaMemcpyDeviceToHost : cudaMemcpyHostToDevice );
+        if (device != other.device)
+        {
+            copy(other, device ? cudaMemcpyDeviceToHost : cudaMemcpyHostToDevice);
             other.free();
             return;
         }
@@ -332,10 +333,14 @@ struct MeasurementCellsSoA
     void copy(const MeasurementCellsSoA& other)
     {
         auto kind = cudaMemcpyDeviceToDevice;
-        if( device != other.device ) {
-            if( device ) {
+        if (device != other.device)
+        {
+            if (device)
+            {
                 kind = cudaMemcpyHostToDevice;
-            } else {
+            }
+            else
+            {
                 kind = cudaMemcpyDeviceToHost;
             }
         }
@@ -351,10 +356,11 @@ struct MeasurementCellsSoA
     //       but this should work for now...
     void copy(float* buffer, size_t bytes)
     {
-        assert( bytes >= size * 2 );
+        assert(bytes >= size * 2);
 
         auto kind = cudaMemcpyHostToHost;
-        if( device ) {
+        if (device)
+        {
             kind = cudaMemcpyDeviceToHost;
         }
 

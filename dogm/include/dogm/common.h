@@ -21,7 +21,6 @@ inline void accumulate(thrust::device_vector<T>& arr, thrust::device_vector<T>& 
     thrust::inclusive_scan(arr.begin(), arr.end(), result.begin());
 }
 
-
 template <typename T>
 inline __device__ __host__ T subtract(T* accum_array, int start_idx, int end_idx)
 {
