@@ -8,13 +8,13 @@
 
 namespace dogm
 {
-struct MeasurementCell;
+struct MeasurementCellsSoA;
 }
 
-__global__ void createPolarGridKernel(float2 *polar_grid, const float* __restrict__ measurements,
-                                             int width, int height, float resolution, float stddev_range);
 
-__global__ void transformPolarGridToCartesian( dogm::MeasurementCellsSoA meas_grid, int grid_size, float grid_resolution,
-                                                const float2* polar_grid, int polar_width,  int polar_height,
-                                                float theta_min, float theta_inc, float r_inc, bool use_nearest = true );
+__global__ void createPolarGridKernel(float2* polar_grid, const float* __restrict__ measurements, int width, int height,
+                                      float resolution, float stddev_range);
 
+__global__ void transformPolarGridToCartesian(dogm::MeasurementCellsSoA meas_grid, int grid_size, float grid_resolution,
+                                              const float2* polar_grid, int polar_width, int polar_height,
+                                              float theta_min, float theta_inc, float r_inc, bool use_nearest = true);
