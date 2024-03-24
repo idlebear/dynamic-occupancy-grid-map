@@ -92,6 +92,8 @@ add_library(dogm SHARED
     ${HEADER_FILES}
 	${SRC_FILES}
 )
+set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_ARCHITECTURES 61 75 86 )
+
 
 
 target_include_directories(dogm
@@ -110,7 +112,7 @@ string(APPEND CMAKE_CUDA_FLAGS " --expt-extended-lambda")
 #set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --expt-extended-lambda -Xcudafe --diag_suppress=esa_on_defaulted_function_ignored")
 set(CUDA_PROPAGATE_HOST_FLAGS ON)
 
-set_target_properties(dogm PROPERTIES PUBLIC_HEADER "include/dogm/dogm.h;include/dogm/dogm_types.h")
+set_target_properties(dogm PROPERTIES PUBLIC_HEADER "${HEADER_FILES}")
 
 target_link_libraries(dogm
 	${OPENGL_LIBRARY}
@@ -157,9 +159,12 @@ install(
 install(TARGETS dogm
 	ARCHIVE DESTINATION lib
 	LIBRARY DESTINATION lib
+    PUBLIC_HEADER DESTINATION include
 )
 
-install(
-	DIRECTORY include/
-	DESTINATION include/
-)
+# install(
+# 	DIRECTORY include
+# 	DESTINATION include
+# )
+
+# install(FILES ${HEADER_FILES} DESTINATION include)
